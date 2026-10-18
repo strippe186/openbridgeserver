@@ -1,0 +1,349 @@
+From 0039d59f10c7afb30844bb87a2196ef687e64408 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sun, 18 Oct 2026 12:05:15 +0200
+Subject: [PATCH 1/2] feat(visu): optional icon size for the Link widget
+
+The Link widget always rendered its icon at text-4xl, and VisuIcon
+fits every SVG into a 1em square, so a wide SVG (e.g. a 393x207 car
+picture) shrank to a thin strip in the middle of the tile.
+
+Add an optional icon_size config value (px). 0 or a missing/invalid
+value keeps the previous rendering (text-4xl, 1em square), so existing
+widgets are unchanged. With a size set, the icon wrapper spans the tile
+and uses that font size; VisuIcon gets an opt-in fitWidth prop that
+renders the SVG 1em high with automatic width, capped at the container
+width, so the aspect ratio is kept. Emoji just scale with the font size.
+All other VisuIcon callers keep the 1em square.
+
+The Link config panel gets a numeric input with de/en strings, the
+widget default config gains icon_size: 0, and vitests cover the default,
+the fallback for invalid values, the custom size and the SVG sizing.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01HZdVy858jPX5iQb4BXUFaz
+---
+ frontend/src/components/VisuIcon.vue     |   9 +-
+ frontend/src/locales/de.json             |   2 +
+ frontend/src/locales/en.json             |   2 +
+ frontend/src/widgets/Link/Config.test.ts |  59 +++++++++++++
+ frontend/src/widgets/Link/Config.vue     |  16 ++++
+ frontend/src/widgets/Link/Widget.test.ts | 102 +++++++++++++++++++++++
+ frontend/src/widgets/Link/Widget.vue     |  13 ++-
+ frontend/src/widgets/Link/index.ts       |   1 +
+ 8 files changed, 201 insertions(+), 3 deletions(-)
+ create mode 100644 frontend/src/widgets/Link/Config.test.ts
+ create mode 100644 frontend/src/widgets/Link/Widget.test.ts
+
+diff --git a/frontend/src/components/VisuIcon.vue b/frontend/src/components/VisuIcon.vue
+index 005621df5..6c278b013 100644
+--- a/frontend/src/components/VisuIcon.vue
++++ b/frontend/src/components/VisuIcon.vue
+@@ -7,6 +7,11 @@ const props = defineProps<{
+   icon: string
+   /** When true, imported SVGs are rendered with their original fill colors instead of brightness-0/invert */
+   preserveColor?: boolean
++  /**
++   * When true, SVG icons keep their aspect ratio: height 1em, width auto (capped at the
++   * container width) instead of being fitted into a 1em square. Emoji are unaffected.
++   */
++  fitWidth?: boolean
+ }>()
+ 
+ const { getSvg, isSvgIcon, svgIconName } = useIcons()
+@@ -52,8 +57,8 @@ onBeforeUnmount(() => {
+     v-else-if="svgBlobUrl"
+     :src="svgBlobUrl"
+     alt=""
+-    class="inline-block w-[1em] h-[1em] object-contain"
+-    :class="preserveColor ? '' : 'brightness-0 dark:invert'"
++    class="inline-block h-[1em] object-contain"
++    :class="[fitWidth ? 'w-auto max-w-full' : 'w-[1em]', preserveColor ? '' : 'brightness-0 dark:invert']"
+     loading="lazy"
+     decoding="async"
+   />
+diff --git a/frontend/src/locales/de.json b/frontend/src/locales/de.json
+index 0e5b8e510..39507c435 100644
+--- a/frontend/src/locales/de.json
++++ b/frontend/src/locales/de.json
+@@ -643,6 +643,8 @@
+       "activeIndicatorLine": "Linie (unten)",
+       "activeIndicatorNone": "Keine",
+       "defaultLabel": "Link",
++      "iconSize": "Icon-Größe (px)",
++      "iconSizeHint": "0 = Standardgröße. Breite SVG-Icons behalten ihr Seitenverhältnis.",
+       "labelPlaceholder": "z.B. Wohnzimmer",
+       "noTarget": "Kein Ziel",
+       "showArrow": "Navigationspfeil (→) anzeigen",
+diff --git a/frontend/src/locales/en.json b/frontend/src/locales/en.json
+index eafac5068..0da0db4b4 100644
+--- a/frontend/src/locales/en.json
++++ b/frontend/src/locales/en.json
+@@ -643,6 +643,8 @@
+       "activeIndicatorLine": "Line (bottom)",
+       "activeIndicatorNone": "None",
+       "defaultLabel": "Link",
++      "iconSize": "Icon size (px)",
++      "iconSizeHint": "0 = default size. Wide SVG icons keep their aspect ratio.",
+       "labelPlaceholder": "e.g. Living room",
+       "noTarget": "No target",
+       "showArrow": "Show navigation arrow (→)",
+diff --git a/frontend/src/widgets/Link/Config.test.ts b/frontend/src/widgets/Link/Config.test.ts
+new file mode 100644
+index 000000000..326448b0f
+--- /dev/null
++++ b/frontend/src/widgets/Link/Config.test.ts
+@@ -0,0 +1,59 @@
++// @vitest-environment jsdom
++import { mount } from '@vue/test-utils'
++import { describe, expect, it, vi } from 'vitest'
++import LinkConfig from './Config.vue'
++
++vi.mock('@/stores/visu', () => ({
++  useVisuStore: () => ({
++    treeLoaded: true,
++    loadTree: vi.fn(),
++    nodes: [],
++    getNode: vi.fn(),
++  }),
++}))
++
++function mountConfig(modelValue: Record<string, unknown>) {
++  return mount(LinkConfig, {
++    props: { modelValue },
++    global: {
++      mocks: { $t: (key: string) => key },
++      stubs: { IconPicker: true, VisuIcon: true },
++    },
++  })
++}
++
++function lastEmitted(wrapper: ReturnType<typeof mountConfig>) {
++  const events = wrapper.emitted('update:modelValue') ?? []
++  return events[events.length - 1]?.[0] as Record<string, unknown>
++}
++
++describe('Link config icon size', () => {
++  it('shows 0 (default size) when icon_size is missing', () => {
++    const wrapper = mountConfig({ label: 'Garage' })
++    const input = wrapper.get('[data-testid="link-icon-size"]')
++    expect((input.element as HTMLInputElement).value).toBe('0')
++    expect(wrapper.text()).toContain('widgets.link.iconSize')
++    expect(wrapper.text()).toContain('widgets.link.iconSizeHint')
++  })
++
++  it('loads an existing icon size and emits changes as a number', async () => {
++    const wrapper = mountConfig({ label: 'Garage', icon_size: 64 })
++    const input = wrapper.get('[data-testid="link-icon-size"]')
++    expect((input.element as HTMLInputElement).value).toBe('64')
++
++    await input.setValue('120')
++
++    expect(lastEmitted(wrapper).icon_size).toBe(120)
++  })
++
++  it('re-syncs icon_size when the edited widget changes', async () => {
++    const wrapper = mountConfig({ label: 'A', icon_size: 64 })
++
++    await wrapper.setProps({ modelValue: { label: 'B', icon_size: 32 } })
++    expect((wrapper.get('[data-testid="link-icon-size"]').element as HTMLInputElement).value).toBe('32')
++
++    await wrapper.setProps({ modelValue: { label: 'C' } })
++    expect((wrapper.get('[data-testid="link-icon-size"]').element as HTMLInputElement).value).toBe('0')
++    expect(lastEmitted(wrapper).icon_size).toBe(0)
++  })
++})
+diff --git a/frontend/src/widgets/Link/Config.vue b/frontend/src/widgets/Link/Config.vue
+index 35a0768c0..e398aefb8 100644
+--- a/frontend/src/widgets/Link/Config.vue
++++ b/frontend/src/widgets/Link/Config.vue
+@@ -18,6 +18,7 @@ const cfg = reactive({
+   preserve_icon_color: (props.modelValue.preserve_icon_color as boolean) ?? false,
+   label_size:          (props.modelValue.label_size          as string)  ?? 'sm',
+   active_indicator:    (props.modelValue.active_indicator    as string)  ?? 'none',
++  icon_size:           (props.modelValue.icon_size           as number)  ?? 0,
+ })
+ 
+ // Sync bei Widget-Wechsel
+@@ -30,6 +31,7 @@ watch(() => props.modelValue, (v) => {
+   cfg.preserve_icon_color = (v.preserve_icon_color as boolean) ?? false
+   cfg.label_size          = (v.label_size          as string)  ?? 'sm'
+   cfg.active_indicator    = (v.active_indicator    as string)  ?? 'none'
++  cfg.icon_size           = (v.icon_size           as number)  ?? 0
+ })
+ 
+ watch(cfg, () => emit('update:modelValue', { ...cfg }), { deep: true })
+@@ -124,6 +126,20 @@ onUnmounted(() => document.removeEventListener('mousedown', onDocClick))
+       <span class="text-xs text-gray-500 dark:text-gray-400">{{ $t('widgets.link.showIcon') }}</span>
+     </label>
+ 
++    <!-- Icon-Grösse -->
++    <div>
++      <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">{{ $t('widgets.link.iconSize') }}</label>
++      <input
++        v-model.number="cfg.icon_size"
++        type="number"
++        min="0"
++        step="1"
++        data-testid="link-icon-size"
++        class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded px-2 py-1.5 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-blue-500"
++      />
++      <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">{{ $t('widgets.link.iconSizeHint') }}</p>
++    </div>
++
+     <!-- SVG-Farbe erhalten -->
+     <label class="flex items-center gap-2 cursor-pointer select-none">
+       <input type="checkbox" v-model="cfg.preserve_icon_color" class="rounded" />
+diff --git a/frontend/src/widgets/Link/Widget.test.ts b/frontend/src/widgets/Link/Widget.test.ts
+new file mode 100644
+index 000000000..8bf43822d
+--- /dev/null
++++ b/frontend/src/widgets/Link/Widget.test.ts
+@@ -0,0 +1,102 @@
++// @vitest-environment jsdom
++import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
++import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
++import LinkWidget from './Widget.vue'
++
++vi.mock('vue-router', () => ({
++  useRouter: () => ({ push: vi.fn() }),
++  useRoute: () => ({ params: {} }),
++}))
++
++vi.mock('@/stores/visu', () => ({
++  useVisuStore: () => ({
++    getNode: vi.fn(),
++    getChildren: vi.fn().mockReturnValue([]),
++    hasSessionToken: vi.fn().mockReturnValue(false),
++    isLoggedIn: false,
++  }),
++}))
++
++vi.mock('@/composables/useIcons', () => ({
++  useIcons: () => ({
++    getSvg: vi.fn().mockResolvedValue('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 393 207"></svg>'),
++    isSvgIcon: (icon: string) => icon.startsWith('svg:'),
++    svgIconName: (icon: string) => icon.slice(4),
++  }),
++}))
++
++vi.mock('vue-i18n', () => ({
++  useI18n: () => ({ t: (key: string) => key }),
++}))
++
++let wrapper: VueWrapper | null = null
++
++function mountWidget(config: Record<string, unknown>) {
++  wrapper = mount(LinkWidget, {
++    props: {
++      config: { label: 'Garage', target_node_id: 'page-1', ...config },
++      datapointId: null,
++      value: null,
++      statusValue: null,
++      editorMode: false,
++    },
++    global: { mocks: { $t: (key: string) => key } },
++  })
++  return wrapper
++}
++
++beforeEach(() => {
++  vi.stubGlobal('URL', { ...URL, createObjectURL: vi.fn(() => 'blob:icon'), revokeObjectURL: vi.fn() })
++})
++
++afterEach(() => {
++  wrapper?.unmount()
++  wrapper = null
++  vi.unstubAllGlobals()
++})
++
++describe('Link widget icon size', () => {
++  it('keeps the default text-4xl icon size when icon_size is missing', () => {
++    const icon = mountWidget({ icon: '🔗' }).get('[data-testid="link-icon"]')
++    expect(icon.classes()).toContain('text-4xl')
++    expect(icon.attributes('style')).toBeUndefined()
++  })
++
++  it.each([0, -10, 'abc', null])('falls back to the default size for icon_size=%s', (size) => {
++    const icon = mountWidget({ icon: '🔗', icon_size: size }).get('[data-testid="link-icon"]')
++    expect(icon.classes()).toContain('text-4xl')
++    expect(icon.attributes('style')).toBeUndefined()
++  })
++
++  it('applies a custom icon size as font-size in px', () => {
++    const icon = mountWidget({ icon: '🔗', icon_size: 96 }).get('[data-testid="link-icon"]')
++    expect(icon.classes()).not.toContain('text-4xl')
++    expect(icon.classes()).toEqual(expect.arrayContaining(['block', 'w-full', 'text-center']))
++    expect(icon.attributes('style')).toContain('font-size: 96px')
++  })
++
++  it('accepts a numeric string as icon size', () => {
++    const icon = mountWidget({ icon: '🔗', icon_size: '48' }).get('[data-testid="link-icon"]')
++    expect(icon.attributes('style')).toContain('font-size: 48px')
++  })
++
++  it('renders SVG icons as a 1em square by default', async () => {
++    const w = mountWidget({ icon: 'svg:car' })
++    await flushPromises()
++    const img = w.get('[data-testid="link-icon"] img')
++    expect(img.classes()).toContain('w-[1em]')
++    expect(img.classes()).not.toContain('w-auto')
++  })
++
++  it('keeps the aspect ratio of SVG icons when an icon size is set', async () => {
++    const w = mountWidget({ icon: 'svg:car', icon_size: 120 })
++    await flushPromises()
++    const img = w.get('[data-testid="link-icon"] img')
++    expect(img.classes()).toEqual(expect.arrayContaining(['h-[1em]', 'w-auto', 'max-w-full']))
++    expect(img.classes()).not.toContain('w-[1em]')
++  })
++
++  it('renders no icon when show_icon is false', () => {
++    expect(mountWidget({ icon: '🔗', icon_size: 96, show_icon: false }).find('[data-testid="link-icon"]').exists()).toBe(false)
++  })
++})
+diff --git a/frontend/src/widgets/Link/Widget.vue b/frontend/src/widgets/Link/Widget.vue
+index 7a4ca17e6..751377db5 100644
+--- a/frontend/src/widgets/Link/Widget.vue
++++ b/frontend/src/widgets/Link/Widget.vue
+@@ -28,6 +28,11 @@ const labelSize = computed(() => {
+   const map: Record<string, string> = { xs: 'text-xs', sm: 'text-sm', md: 'text-base', lg: 'text-lg', xl: 'text-xl' }
+   return map[s ?? ''] ?? 'text-sm'
+ })
++// Icon size in px; 0, missing or invalid keeps the default size (text-4xl).
++const iconSize = computed(() => {
++  const n = Number(props.config.icon_size)
++  return Number.isFinite(n) && n > 0 ? n : 0
++})
+ const showArrow = computed(() => props.config.show_arrow !== false)
+ 
+ const activeIndicator = computed(() => (props.config.active_indicator as string | undefined) ?? 'none')
+@@ -93,7 +98,13 @@ function navigate() {
+     ]"
+     @click="navigate"
+   >
+-    <span v-if="showIcon" class="text-4xl leading-none" data-testid="link-icon"><VisuIcon :icon="icon" :preserve-color="preserveIconColor" /></span>
++    <span
++      v-if="showIcon"
++      class="leading-none"
++      :class="iconSize ? 'block w-full text-center' : 'text-4xl'"
++      :style="iconSize ? { fontSize: `${iconSize}px` } : undefined"
++      data-testid="link-icon"
++    ><VisuIcon :icon="icon" :preserve-color="preserveIconColor" :fit-width="iconSize > 0" /></span>
+     <span class="font-medium text-gray-800 dark:text-gray-200 text-center leading-tight" :class="labelSize">{{ label }}</span>
+     <span v-if="showArrow && !editorMode && targetId" class="text-xs text-gray-400 dark:text-gray-500">→</span>
+     <span v-else-if="!targetId" class="text-xs text-gray-400 dark:text-gray-600">{{ $t('widgets.link.noTarget') }}</span>
+diff --git a/frontend/src/widgets/Link/index.ts b/frontend/src/widgets/Link/index.ts
+index 456ccd5a8..2cb3bdb0b 100644
+--- a/frontend/src/widgets/Link/index.ts
++++ b/frontend/src/widgets/Link/index.ts
+@@ -20,6 +20,7 @@ WidgetRegistry.register({
+     preserve_icon_color: false,
+     label_size: 'sm',
+     active_indicator: 'none',
++    icon_size: 0,
+   },
+   compatibleTypes: ['*'],
+   noDatapoint: true,
+-- 
+2.43.0
+

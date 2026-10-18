@@ -1,0 +1,69 @@
+From a11c679f5760b099cbadf76691d767f432bb6dee Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sun, 18 Oct 2026 12:05:10 +0200
+Subject: [PATCH 2/3] docs(help): describe PNG/JPEG icon import
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01HZdVy858jPX5iQb4BXUFaz
+---
+ help/de/settings/icons.md | 17 ++++++++++++-----
+ help/en/settings/icons.md | 14 ++++++++++----
+ 2 files changed, 22 insertions(+), 9 deletions(-)
+
+diff --git a/help/de/settings/icons.md b/help/de/settings/icons.md
+index 8342a11b4..c2dab99d4 100644
+--- a/help/de/settings/icons.md
++++ b/help/de/settings/icons.md
+@@ -12,11 +12,18 @@ Zeigt alle installierten Icons als durchsuchbares Raster. Mehrfachauswahl per Kl
+ ermöglicht Export (als Sammlung) oder Löschen der ausgewählten Icons; „Alle wählen"/„Alle
+ abwählen" wirkt auf die aktuell gefilterte/durchsuchte Liste.
+ 
+-## SVG Icons importieren {#settings-icons-import}
+-
+-Icons per Drag & Drop oder Dateiauswahl hochladen — einzelne SVG-Dateien oder ein ZIP-Archiv
+-mit mehreren SVGs. Jede Datei wird auf gültiges SVG-Format geprüft, unabhängig von der
+-Dateiendung.
++## Icons importieren {#settings-icons-import}
++
++Icons per Drag & Drop oder Dateiauswahl hochladen — einzelne SVG-, PNG- oder JPEG-Dateien oder
++ein ZIP-Archiv mit mehreren solchen Dateien. Jede Datei wird anhand ihres Inhalts geprüft,
++unabhängig von der Dateiendung; Name des Icons ist der Dateiname ohne Endung.
++
++PNG- und JPEG-Bilder (max. 1 MB pro Bild) werden als SVG gespeichert, in das das Bild
++eingebettet ist; Breite und Höhe des Bildes bleiben dabei als Seitenverhältnis erhalten. Auch
++SVGs, in die ein Bitmap eingebettet ist (z. B. ein in Inkscape eingefügtes Foto), behalten das
++Bild beim Import. Wie farbige SVGs erscheint ein solches Icon in der Visu nur dort in seinen
++Originalfarben, wo ein Widget die Option „SVG-Icon-Farbe erhalten" anbietet und sie aktiviert
++ist; sonst wird es als einfarbige Silhouette dargestellt.
+ 
+ ## KNX UF Iconset importieren {#settings-icons-knxuf}
+ 
+diff --git a/help/en/settings/icons.md b/help/en/settings/icons.md
+index adc1dacc7..11f4ac620 100644
+--- a/help/en/settings/icons.md
++++ b/help/en/settings/icons.md
+@@ -12,11 +12,17 @@ Shows all installed icons as a searchable grid. Multi-select by clicking enables
+ collection) or deletion of the selected icons; "Select all"/"Deselect all" act on the
+ currently filtered/searched list.
+ 
+-## Import SVG icons {#settings-icons-import}
++## Import icons {#settings-icons-import}
+ 
+-Upload icons via drag & drop or file selection — individual SVG files or a ZIP archive
+-containing multiple SVGs. Every file is validated as proper SVG regardless of its file
+-extension.
++Upload icons via drag & drop or file selection — individual SVG, PNG or JPEG files or a ZIP
++archive containing several of them. Every file is checked by its content regardless of its
++file extension; the icon name is the file name without its extension.
++
++PNG and JPEG images (max. 1 MB per image) are stored as an SVG that embeds the image, keeping
++the image's width and height as its aspect ratio. SVGs that embed a bitmap (e.g. a photo
++placed in Inkscape) also keep that image on import. Like coloured SVGs, such an icon only
++appears in its original colours in the Visu where a widget offers the "Preserve SVG icon
++color" option and it is enabled; otherwise it is shown as a single-colour silhouette.
+ 
+ ## Import KNX UF iconset {#settings-icons-knxuf}
+ 
+-- 
+2.43.0
+
