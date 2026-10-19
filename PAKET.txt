@@ -1,6 +1,6 @@
 Paket:   obs-mein-stand.tar.gz
 Version: 2026.11.0-dev+mein-stand
 Basis:   abeggled/openbridgeserver main @ f2db13b3 (2026-10-18)
-Stand:   mein-stand @ 723da143, gebaut 2026-10-19
+Stand:   mein-stand @ 1c03de12, gebaut 2026-10-19
 Enthält: Link-Icon-Größe, PNG/JPEG-Icons, Wortuhr-Minutenpunkte, Visu-Geräte (Startseite/Rücksprung),
-         Link-Zurück-Button, eigene Icons in der Visu ohne Anmeldung (erlaubte Seiten, PIN-Seiten nach PIN)
+         Link-Zurück-Button, eigene Icons ohne Anmeldung, Visu-Alarme
