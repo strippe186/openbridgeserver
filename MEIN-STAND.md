@@ -15,6 +15,7 @@ als Pull Request eingereicht. Er besteht aus dem offiziellen Stand von
 | Visu-Geräte: Startseite und Rücksprung je Gerät | `feat/visu-device-start-page` | eingereicht |
 | Link-Widget: zurück zur zuvor besuchten Seite | `feat/link-history-back` | eingereicht |
 | Visu: eigene Icons ohne Anmeldung (nur auf erlaubten Seiten, PIN-Seiten nach PIN) | `fix/visu-icons-public-pages` | eingereicht |
+| Visu-Alarme: Meldung oder Seite bei Ereignissen in den Vordergrund (baut auf den Visu-Geräten auf) | `feat/visu-alarms` | eingereicht |
 
 Jeder `feat/…`- bzw. `fix/…`-Branch enthält genau eine Änderung, sauber auf dem offiziellen Stand aufgebaut.
 `mein-stand` führt sie zusammen.
