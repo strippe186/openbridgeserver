@@ -14,8 +14,9 @@ als Pull Request eingereicht. Er besteht aus dem offiziellen Stand von
 | Wortuhr: Minutenpunkte in den Ecken | `feat/wortuhr-minute-dots` | #1378 |
 | Visu-Geräte: Startseite und Rücksprung je Gerät | `feat/visu-device-start-page` | eingereicht |
 | Link-Widget: zurück zur zuvor besuchten Seite | `feat/link-history-back` | eingereicht |
+| Visu: eigene Icons ohne Anmeldung (nur auf erlaubten Seiten, PIN-Seiten nach PIN) | `fix/visu-icons-public-pages` | eingereicht |
 
-Jeder `feat/…`-Branch enthält genau eine Änderung, sauber auf dem offiziellen Stand aufgebaut.
+Jeder `feat/…`- bzw. `fix/…`-Branch enthält genau eine Änderung, sauber auf dem offiziellen Stand aufgebaut.
 `mein-stand` führt sie zusammen.
 
 ## Installiertes Paket
@@ -48,14 +49,16 @@ Ablauf für Claude:
    `main` holen.
 2. Für jede Zeile der Tabelle prüfen, ob die Änderung offiziell schon enthalten ist (PR gemergt
    oder Funktion im Code vorhanden). Enthaltene Änderungen aus der Tabelle streichen.
-3. Die übrigen `feat/…`-Branches auf die neue Basis bringen (Merge der Basis in den Branch,
+3. Die übrigen `feat/…`- und `fix/…`-Branches auf die neue Basis bringen (Merge der Basis in den Branch,
    Konflikte lösen) und pushen, damit offene PRs aktuell bleiben.
-4. `mein-stand` neu von der Basis anlegen, alle übrigen `feat/…`-Branches hineinmergen, diese
+4. `mein-stand` neu von der Basis anlegen, alle übrigen `feat/…`- und `fix/…`-Branches hineinmergen, diese
    Datei übernehmen und die Tabelle aktualisieren.
 5. Die Gates aus `AGENTS.md` laufen lassen (Lint, i18n, Help, beide Builds und Tests, pytest).
 6. Paket bauen wie `tools/_lxc-inner.sh` (Abschnitt „App bundle“): `obs/`, `gui_dist/`,
-   `frontend_dist/`, `help_dist/`, `requirements.txt`; `obs/version` =
-   `<Basis-Version>+mein-stand`. Nach `mein-stand-paket` pushen (Paket, `.sha256`,
+   `frontend_dist/`, `help_dist/`, `requirements.txt`. Die Versionsnummer an **beiden** Stellen
+   setzen, sonst zeigt das Admin-GUI `0.0.0-dev`: `obs/version` und vor dem GUI-Build
+   `npm pkg set version=<Version> --prefix gui`; `<Version>` = `<Basis-Version>-dev+mein-stand`
+   (Basis `main`) bzw. `<Basis-Version>+mein-stand` (Basis ein Release-Tag). Nach `mein-stand-paket` pushen (Paket, `.sha256`,
    `install.sh`, `PAKET.txt` aktualisieren).
 7. Mir den Einspiel-Befehl von oben nennen.
 
