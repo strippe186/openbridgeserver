@@ -5,12 +5,11 @@ import { useRouter } from 'vue-router'
 import { useVisuStore } from '@/stores/visu'
 import { useDatapointsStore } from '@/stores/datapoints'
 import { useWebSocket } from '@/composables/useWebSocket'
-import { useThemeStore } from '@/stores/theme'
 import { WidgetRegistry } from '@/widgets/registry'
 import MissingWidget from '@/widgets/MissingWidget.vue'
-import Breadcrumb from '@/components/Breadcrumb.vue'
 import NodeOverview from '@/components/NodeOverview.vue'
-import AuthButton from '@/components/AuthButton.vue'
+import VisuHeader from '@/components/VisuHeader.vue'
+import { useDeviceStore } from '@/stores/device'
 import { getJwt, getSessionToken, setWriteContext, clearWriteContext, visuBackgrounds as bgApi } from '@/api/client'
 import {
   cssBackgroundPosition,
@@ -53,7 +52,7 @@ const router = useRouter()
 const visuStore = useVisuStore()
 const dpStore = useDatapointsStore()
 const ws = useWebSocket()
-const theme = useThemeStore()
+const device = useDeviceStore()
 
 const loading = ref(true)
 const error = ref('')
@@ -106,9 +105,14 @@ const extraDpIds = computed(() => {
   return ids
 })
 
-// Alle zu abonnierenden IDs (Haupt + Status + Extra, dedupliziert)
+// Werte der Kopfleiste (z.B. Außentemperatur) — ohne Kopfleiste keine
+const headerDpIds = computed(() =>
+  embedded || !device.header.visible ? [] : device.header.values.map((v) => v.datapoint_id)
+)
+
+// Alle zu abonnierenden IDs (Haupt + Status + Extra + Kopfleiste, dedupliziert)
 const allDpIds = computed(() => {
-  const set = new Set([...datapointIds.value, ...statusDpIds.value, ...extraDpIds.value])
+  const set = new Set([...datapointIds.value, ...statusDpIds.value, ...extraDpIds.value, ...headerDpIds.value])
   return Array.from(set)
 })
 
@@ -168,6 +172,9 @@ async function load() {
       dpStore.subscribe(allDpIds.value)
       // Sofort aktuelle Werte per HTTP laden (unabhängig von WS-Status)
       await dpStore.fetchInitialValues(allDpIds.value)
+    } else if (headerDpIds.value.length) {
+      // Übersicht ohne Live-Verbindung: die Kopfleiste zeigt den aktuellen Stand.
+      await dpStore.fetchInitialValues(headerDpIds.value, { pageId: props.id })
     }
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : t('common.loadError')
@@ -277,29 +284,8 @@ function widgetChrome(w: WidgetInstance): string {
 
 <template>
   <div class="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 flex flex-col">
-    <!-- Header -->
-    <header v-if="!embedded" class="border-b border-gray-200 dark:border-gray-800 px-6 py-3 flex items-center justify-between gap-4 flex-shrink-0 bg-gray-50 dark:bg-gray-900">
-      <Breadcrumb />
-      <div class="flex items-center gap-2">
-        <button
-          v-if="visuStore.isAdmin && isPage"
-          class="text-xs text-gray-400 dark:text-gray-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors px-2 py-1 rounded"
-          @click="router.push({ name: 'editor', params: { id } })"
-        >✏️ {{ $t('common.edit') }}</button>
-        <button
-          v-if="visuStore.isAdmin"
-          class="text-xs text-gray-400 dark:text-gray-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors px-2 py-1 rounded"
-          @click="router.push({ name: 'manage' })"
-        >🗂 {{ $t('tree.manage') }}</button>
-        <!-- Hell/Dunkel-Umschalter -->
-        <button
-          class="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 transition-colors px-2 py-1 rounded"
-          :title="theme.isDark ? $t('common.darkMode') : $t('common.lightMode')"
-          @click="theme.toggle()"
-        >{{ theme.isDark ? '☀️' : '🌙' }}</button>
-        <AuthButton />
-      </div>
-    </header>
+    <!-- Kopfleiste (im Admin-GUI einstellbar, je Gerät) -->
+    <VisuHeader v-if="!embedded" :id="id" :is-page="isPage" />
 
     <!-- Loading -->
     <div v-if="loading" class="flex-1 flex items-center justify-center text-gray-400 dark:text-gray-500">

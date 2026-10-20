@@ -16,6 +16,7 @@ vi.mock('@/api/client', () => ({
   getJwt: () => jwt(),
   getIsAdmin: () => admin(),
   visuDevices: { list: () => list() },
+  visuHeader: { get: () => Promise.reject(new Error('offline')) },
 }))
 
 const Stub = defineComponent({ render: () => h('div') })

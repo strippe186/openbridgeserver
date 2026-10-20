@@ -51,3 +51,30 @@ oder Rücksprungzeit im Admin-GUI gelten beim nächsten Laden der Visu auf dem G
   markiert, bis eine andere Seite gewählt ist.
 - Die Profile sind Teil der App-Einstellungen und damit in Konfigurations-Export, Backup und
   Werksreset enthalten.
+
+## Kopfleiste der Visu {#settings-visu-header}
+
+Die graue Leiste über jeder Visu-Seite ist einstellbar. Oben im Reiter legst du die
+**Standard-Kopfleiste** fest; sie gilt für alle Geräte ohne eigene. Für ein einzelnes Profil
+schaltest du **Eigene Kopfleiste für dieses Gerät** ein — das übernimmt die Standard-Kopfleiste
+als Ausgangspunkt, danach kannst du sie für dieses Gerät anpassen, z. B. auf dem Handy nur Uhr und
+Außentemperatur, auf dem Visu-PC zusätzlich den Pfad.
+
+| Einstellung | Bedeutung |
+|---|---|
+| **Kopfleiste anzeigen** | Aus = keine Leiste, die Seite beginnt ganz oben. |
+| **Fixieren** | Die Leiste bleibt beim Scrollen oben stehen, statt mit der Seite nach oben wegzuwandern — praktisch auf dem Handy. |
+| **Seitenüberschrift** | Name der geöffneten Seite. |
+| **Pfad (Breadcrumb)** | Der bisherige Pfad „Haus › EG › Küche“. |
+| **Menü-/Start-Knopf** | Ein Knopf links, der eine wählbare Seite öffnet, z. B. eine selbst gestaltete Menüseite. Beschriftung und Icon sind frei; ohne Beschriftung erscheint der Name der Seite. Auf der Zielseite selbst wird er ausgeblendet. |
+| **Uhrzeit / Datum** | Im Zeit- und Datumsformat aus **Einstellungen → Allgemein**. |
+| **Datenpunkt-Werte** | Bis zu drei Werte, z. B. die Außentemperatur, je mit Bezeichnung, Icon und Nachkommastellen. Die Einheit kommt vom Datenpunkt. |
+| **Tag/Nacht-Umschalter** | Der Knopf ☀️/🌙. |
+| **Anmelden-Knopf** | Ohne ihn meldest du dich über die Adresse `/visu/login` an. Wer angemeldet ist, sieht den Knopf trotzdem, um sich abmelden zu können. |
+
+Für Administratoren bleiben **Bearbeiten** und **Verwalten** immer sichtbar. Als Alarm-Popup
+eingebettete Seiten zeigen keine Kopfleiste.
+
+Die Werte der Kopfleiste sind **nur lesbar** und auf jeder Seite sichtbar, die der Betrachter
+öffnen darf — also auch auf öffentlichen Seiten ohne Anmeldung. Wähle deshalb nur Datenpunkte, die
+jeder sehen darf, der die Visu sieht. Schreiben lassen sie sich über die Kopfleiste nie.

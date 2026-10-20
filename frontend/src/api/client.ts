@@ -926,16 +926,46 @@ export const displaySettings = {
 
 // ── Visu-Geräteprofile (öffentlich, ohne Login) ──────────────────────────────
 
+export interface VisuHeaderValue {
+  datapoint_id: string
+  label: string
+  icon: string
+  decimals: number
+}
+
+/** Kopfleiste über jeder Visu-Seite (Standard oder je Geräteprofil). */
+export interface VisuHeader {
+  visible: boolean
+  /** Bleibt beim Scrollen oben stehen. */
+  sticky: boolean
+  show_breadcrumb: boolean
+  show_title: boolean
+  menu_page_id: string | null
+  menu_label: string
+  menu_icon: string
+  show_clock: boolean
+  show_date: boolean
+  values: VisuHeaderValue[]
+  show_theme_toggle: boolean
+  show_login: boolean
+}
+
 export interface VisuDevice {
   slug: string
   name: string
   start_node_id: string | null
   /** 0 = kein automatischer Rücksprung */
   return_after_s: number
+  /** Eigene Kopfleiste; fehlt sie, gilt die Standard-Kopfleiste. */
+  header?: VisuHeader | null
 }
 
 export const visuDevices = {
   list: () => request<VisuDevice[]>('/system/visu-devices', { silent401: true }),
+}
+
+export const visuHeader = {
+  get: () => request<VisuHeader>('/system/visu-header', { silent401: true }),
 }
 
 // ── Visu-Alarme (öffentlich, ohne Login) ─────────────────────────────────────

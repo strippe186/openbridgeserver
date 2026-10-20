@@ -233,6 +233,12 @@ export const visuDevicesApi = {
   pages:  ()        => api.get('/visu/tree'),
 }
 
+// ── Visu header bar (default; device profiles may carry their own) ────────
+export const visuHeaderApi = {
+  get:    ()       => api.get('/system/visu-header'),
+  update: (header) => api.put('/system/visu-header', header),
+}
+
 // ── Visu alarms ────────────────────────────────────────────────────────────
 export const visuAlarmsApi = {
   list:   ()       => api.get('/system/visu-alarms'),

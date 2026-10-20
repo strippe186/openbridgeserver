@@ -47,3 +47,29 @@ return time in the Admin GUI apply the next time the Visu is loaded on the devic
   marked until another page is chosen.
 - Profiles are part of the app settings and therefore included in configuration export, backups
   and factory reset.
+
+## Visu header bar {#settings-visu-header}
+
+The grey bar above every Visu page is configurable. At the top of the tab you set the **default
+header bar**; it applies to every device without its own. For a single profile, switch on **Own
+header bar for this device** — it starts as a copy of the default and can then be adjusted for that
+device, e.g. only clock and outside temperature on the phone, plus the path on the Visu PC.
+
+| Setting | Meaning |
+|---|---|
+| **Show header bar** | Off = no bar, the page starts at the very top. |
+| **Pin** | The bar stays at the top while scrolling instead of moving up with the page — handy on phones. |
+| **Page title** | Name of the open page. |
+| **Path (breadcrumb)** | The previous path "House › Ground floor › Kitchen". |
+| **Menu/start button** | A button on the left that opens a page of your choice, e.g. a menu page you designed yourself. Label and icon are free; without a label the page name is shown. It is hidden on the target page itself. |
+| **Time / Date** | In the time and date format from **Settings → General**. |
+| **Datapoint values** | Up to three values, e.g. the outside temperature, each with label, icon and decimal places. The unit comes from the datapoint. |
+| **Day/night toggle** | The ☀️/🌙 button. |
+| **Sign-in button** | Without it, sign in via the address `/visu/login`. A signed-in user still sees the button so they can sign out. |
+
+Administrators always keep **Edit** and **Manage**. Pages embedded as an alarm popup show no
+header bar.
+
+The header values are **read-only** and visible on every page the viewer may open — including
+public pages without sign-in. Only choose datapoints that everyone who sees the Visu may see. They
+can never be written through the header bar.
