@@ -144,7 +144,7 @@ describe('VisuHeader', () => {
     values['dp-c'] = { v: null }
     mountHeader({
       values: [
-        { datapoint_id: 'dp-a', label: 'Außen', icon: '🌡', decimals: 1 },
+        { datapoint_id: 'dp-a', label: 'out', icon: '🌡', decimals: 1 },
         { datapoint_id: 'dp-b', label: '', icon: '', decimals: 0 },
         { datapoint_id: 'dp-c', label: '', icon: '', decimals: 0 },
         { datapoint_id: 'dp-missing', label: '', icon: '', decimals: 0 },
@@ -152,7 +152,7 @@ describe('VisuHeader', () => {
     })
 
     const items = wrapper!.findAll('[data-testid="visu-header-value"]')
-    expect(items.map(i => i.text())).toEqual(['🌡Außen7,3 °C', 'offen', '—', '—'])
+    expect(items.map(i => i.text())).toEqual(['🌡out7,3 °C', 'offen', '—', '—'])
     expect(items[1].find('[data-testid="icon"]').exists()).toBe(false)
   })
 
