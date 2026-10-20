@@ -964,6 +964,9 @@ export interface VisuHeader {
   show_clock: boolean
   show_date: boolean
   values: VisuHeaderValue[]
+  /** Pfeil ← zurück / Pfeil → nächste Seite im selben Ordner */
+  show_back?: boolean
+  show_next?: boolean
   show_theme_toggle: boolean
   show_login: boolean
 }

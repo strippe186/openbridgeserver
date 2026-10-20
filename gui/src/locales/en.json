@@ -3571,6 +3571,8 @@
       "sticky": "Pin (stays at the top while scrolling)",
       "show_title": "Page title",
       "show_breadcrumb": "Path (breadcrumb)",
+      "show_back": "Arrow ← back (previously visited page)",
+      "show_next": "Arrow → next page in the same folder",
       "show_clock": "Time",
       "show_date": "Date",
       "show_theme_toggle": "Day/night toggle",

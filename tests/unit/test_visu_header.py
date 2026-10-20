@@ -43,6 +43,8 @@ def test_defaults_reproduce_the_classic_bar():
     assert (header.visible, header.sticky, header.show_breadcrumb, header.show_title) == (True, False, True, False)
     assert (header.menu_page_id, header.show_clock, header.show_date, header.values) == (None, False, False, [])
     assert (header.show_theme_toggle, header.show_login) == (True, True)
+    assert (header.show_back, header.show_next) == (False, False)
+    assert VisuHeader(show_back=True, show_next=True).model_dump()["show_next"] is True
 
 
 def test_normalisation_and_limits():

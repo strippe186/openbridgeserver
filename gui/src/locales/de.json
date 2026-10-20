@@ -3571,6 +3571,8 @@
       "sticky": "Fixieren (bleibt beim Scrollen oben)",
       "show_title": "Seitenüberschrift",
       "show_breadcrumb": "Pfad (Breadcrumb)",
+      "show_back": "Pfeil ← zurück (zuvor besuchte Seite)",
+      "show_next": "Pfeil → nächste Seite im selben Ordner",
       "show_clock": "Uhrzeit",
       "show_date": "Datum",
       "show_theme_toggle": "Tag/Nacht-Umschalter",

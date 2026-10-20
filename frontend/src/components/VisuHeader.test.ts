@@ -7,19 +7,26 @@ import type { VisuHeader } from '@/api/client'
 import { FALLBACK_HEADER, useDeviceStore } from '@/stores/device'
 
 const push = vi.fn()
+const routerBack = vi.fn()
 const toggle = vi.fn()
 const visu = reactive({
   isAdmin: false,
   isLoggedIn: false,
   nodes: [
-    { id: 'page-1', name: 'Wohnzimmer' },
-    { id: 'menu', name: 'Menü-Seite' },
+    { id: 'eg', name: 'EG', type: 'LOCATION', parent_id: null, order: 0 },
+    { id: 'page-1', name: 'Wohnzimmer', type: 'PAGE', parent_id: 'eg', order: 0 },
+    { id: 'sub', name: 'Keller', type: 'LOCATION', parent_id: 'eg', order: 1 },
+    { id: 'page-2', name: 'Küche', type: 'PAGE', parent_id: 'eg', order: 2 },
+    { id: 'menu', name: 'Menü-Seite', type: 'PAGE', parent_id: null, order: 1 },
   ],
   getNode(id: string) { return this.nodes.find(n => n.id === id) },
+  getChildren(parentId: string | null) {
+    return this.nodes.filter(n => n.parent_id === parentId).sort((a, b) => a.order - b.order)
+  },
 })
 const values: Record<string, { v: unknown; u?: string } | null> = {}
 
-vi.mock('vue-router', () => ({ useRouter: () => ({ push }) }))
+vi.mock('vue-router', () => ({ useRouter: () => ({ push, back: routerBack }) }))
 vi.mock('@/api/client', () => ({ visuDevices: { list: vi.fn() }, visuHeader: { get: vi.fn() } }))
 vi.mock('@/stores/visu', () => ({ useVisuStore: () => visu }))
 vi.mock('@/stores/theme', () => ({ useThemeStore: () => ({ isDark: false, toggle }) }))
@@ -52,6 +59,7 @@ beforeEach(() => {
   localStorage.clear()
   setActivePinia(createPinia())
   push.mockReset()
+  routerBack.mockReset()
   toggle.mockReset()
   visu.isAdmin = false
   visu.isLoggedIn = false
@@ -224,5 +232,57 @@ describe('VisuHeader', () => {
 
     expect(has('visu-header-edit')).toBe(false)
     expect(has('visu-header-manage')).toBe(true)
+  })
+
+  it('shows no arrows unless switched on', () => {
+    mountHeader({})
+
+    expect(has('visu-header-back')).toBe(false)
+    expect(has('visu-header-next')).toBe(false)
+  })
+
+  it('goes on to the next page of the folder and wraps around, skipping sub-folders', async () => {
+    mountHeader({ show_next: true })
+    await wrapper!.get('[data-testid="visu-header-next"]').trigger('click')
+    expect(push).toHaveBeenLastCalledWith({ name: 'viewer', params: { id: 'page-2' } })
+    wrapper!.unmount()
+
+    mountHeader({ show_next: true }, { id: 'page-2' })
+    await wrapper!.get('[data-testid="visu-header-next"]').trigger('click')
+    expect(push).toHaveBeenLastCalledWith({ name: 'viewer', params: { id: 'page-1' } })
+  })
+
+  it('hides the next arrow without another page in the folder or on an overview node', () => {
+    mountHeader({ show_next: true }, { id: 'menu' })
+    expect(has('visu-header-next')).toBe(false)
+    wrapper!.unmount()
+
+    mountHeader({ show_next: true }, { id: 'eg', isPage: false })
+    expect(has('visu-header-next')).toBe(false)
+  })
+
+  describe('back arrow', () => {
+    afterEach(() => {
+      window.history.replaceState(null, '')
+    })
+
+    it('returns to the previously visited page', async () => {
+      window.history.replaceState({ back: '/visu/page-2' }, '')
+      mountHeader({ show_back: true })
+      await wrapper!.get('[data-testid="visu-header-back"]').trigger('click')
+      expect(routerBack).toHaveBeenCalled()
+      expect(push).not.toHaveBeenCalled()
+    })
+
+    it('goes one level up without history, and to the start page at the top', async () => {
+      mountHeader({ show_back: true })
+      await wrapper!.get('[data-testid="visu-header-back"]').trigger('click')
+      expect(push).toHaveBeenLastCalledWith({ name: 'viewer', params: { id: 'eg' } })
+      wrapper!.unmount()
+
+      mountHeader({ show_back: true }, { id: 'menu' })
+      await wrapper!.get('[data-testid="visu-header-back"]').trigger('click')
+      expect(push).toHaveBeenLastCalledWith({ name: 'tree' })
+    })
   })
 })
