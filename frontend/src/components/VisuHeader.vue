@@ -70,7 +70,10 @@ const ARROW_SIZES: Record<string, string> = {
   medium: 'text-2xl px-2 py-1',
   large: 'text-4xl px-3 py-1',
 }
-const arrowsAtTitle = computed(() => header.value.arrow_position === 'title')
+// 'edges': ganz links/rechts; 'title': direkt hinter der Überschrift;
+// 'right': vor den Anzeigen rechts (Werte, Uhr) — bleibt auf dem Handy an Ort und Stelle.
+const arrowPosition = computed(() => header.value.arrow_position ?? 'edges')
+const arrowsAtEdges = computed(() => arrowPosition.value === 'edges')
 const arrowClass = computed(() =>
   `shrink-0 leading-none rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors ${ARROW_SIZES[header.value.arrow_size ?? 'auto'] ?? ARROW_SIZES.auto}`,
 )
@@ -79,6 +82,13 @@ const bold = computed(() => header.value.arrow_style === 'bold')
 const backGlyph = computed(() => (bold.value ? '◀\uFE0E' : '←'))
 const nextGlyph = computed(() => (bold.value ? '▶\uFE0E' : '→'))
 const showNext = computed(() => !!header.value.show_next && !!nextPageId.value)
+const hasArrows = computed(() => !!header.value.show_back || showNext.value)
+
+// Feste Breite der Überschrift ab Tablet-Breite, damit die Pfeile dahinter
+// nicht mit der Länge des Seitennamens wandern (0 = so breit wie nötig).
+const titleStyle = computed(() =>
+  header.value.title_width ? { '--visu-title-w': `${header.value.title_width}px` } : undefined,
+)
 
 function goNext() {
   router.push({ name: 'viewer', params: { id: nextPageId.value } })
@@ -111,7 +121,7 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
   >
     <div class="flex items-center gap-3 min-w-0">
       <button
-        v-if="header.show_back && !arrowsAtTitle"
+        v-if="header.show_back && arrowsAtEdges"
         :class="arrowClass"
         :title="$t('viewer.headerBack')"
         :aria-label="$t('viewer.headerBack')"
@@ -127,8 +137,14 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
         <span v-if="menuIcon" class="text-lg leading-none"><VisuIcon :icon="menuIcon" /></span>
         <span v-if="menuLabel">{{ menuLabel }}</span>
       </button>
-      <h1 v-if="header.show_title" class="text-base font-semibold truncate" data-testid="visu-header-title">{{ title }}</h1>
-      <span v-if="arrowsAtTitle && (header.show_back || showNext)" class="flex items-center gap-1 shrink-0" data-testid="visu-header-arrows">
+      <h1
+        v-if="header.show_title"
+        class="text-base font-semibold truncate"
+        :class="{ 'sm:shrink-0 sm:w-[var(--visu-title-w)]': !!titleStyle }"
+        :style="titleStyle"
+        data-testid="visu-header-title"
+      >{{ title }}</h1>
+      <span v-if="arrowPosition === 'title' && hasArrows" class="flex items-center gap-1 shrink-0" data-testid="visu-header-arrows">
         <button
           v-if="header.show_back"
           :class="arrowClass"
@@ -150,6 +166,24 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
     </div>
 
     <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+      <span v-if="arrowPosition === 'right' && hasArrows" class="flex items-center gap-1 shrink-0" data-testid="visu-header-arrows">
+        <button
+          v-if="header.show_back"
+          :class="arrowClass"
+          :title="$t('viewer.headerBack')"
+          :aria-label="$t('viewer.headerBack')"
+          data-testid="visu-header-back"
+          @click="goBack"
+        >{{ backGlyph }}</button>
+        <button
+          v-if="showNext"
+          :class="arrowClass"
+          :title="$t('viewer.headerNext')"
+          :aria-label="$t('viewer.headerNext')"
+          data-testid="visu-header-next"
+          @click="goNext"
+        >{{ nextGlyph }}</button>
+      </span>
       <span
         v-for="item in header.values"
         :key="item.datapoint_id"
@@ -186,7 +220,7 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
       >{{ theme.isDark ? '☀️' : '🌙' }}</button>
       <AuthButton v-if="header.show_login || visuStore.isLoggedIn" />
       <button
-        v-if="showNext && !arrowsAtTitle"
+        v-if="showNext && arrowsAtEdges"
         :class="arrowClass"
         :title="$t('viewer.headerNext')"
         :aria-label="$t('viewer.headerNext')"

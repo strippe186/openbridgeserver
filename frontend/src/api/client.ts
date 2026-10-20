@@ -967,7 +967,9 @@ export interface VisuHeader {
   /** Pfeil ← zurück / Pfeil → nächste Seite im selben Ordner */
   show_back?: boolean
   show_next?: boolean
-  arrow_position?: 'edges' | 'title'
+  arrow_position?: 'edges' | 'title' | 'right'
+  /** Feste Breite der Überschrift in px ab Tablet-Breite (0 = automatisch) */
+  title_width?: number
   arrow_style?: 'thin' | 'bold'
   arrow_size?: 'auto' | 'small' | 'medium' | 'large'
   show_theme_toggle: boolean

@@ -33,6 +33,7 @@ export const FALLBACK_HEADER: VisuHeader = {
   arrow_position: 'edges',
   arrow_style: 'thin',
   arrow_size: 'auto',
+  title_width: 0,
   show_theme_toggle: true,
   show_login: true,
 }

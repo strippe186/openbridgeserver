@@ -304,6 +304,29 @@ describe('VisuHeader', () => {
     expect(wrapper!.get('[data-testid="visu-header-arrows"]').findAll('button')).toHaveLength(1)
   })
 
+  it('puts the arrows in front of the displays on the right', () => {
+    values['dp-a'] = { v: 7, u: '°C' }
+    mountHeader({ show_back: true, show_next: true, show_clock: true, arrow_position: 'right', values: [{ datapoint_id: 'dp-a', label: '', icon: '', decimals: 0 }] })
+
+    const group = wrapper!.get('[data-testid="visu-header-arrows"]')
+    expect(group.element.nextElementSibling?.getAttribute('data-testid')).toBe('visu-header-value')
+    expect(group.findAll('button')).toHaveLength(2)
+    expect(wrapper!.findAll('[data-testid="visu-header-back"]')).toHaveLength(1)
+  })
+
+  it('gives the title a fixed width from tablet width on, or none', () => {
+    mountHeader({ show_title: true, title_width: 320 })
+    const fixed = wrapper!.get('[data-testid="visu-header-title"]')
+    expect(fixed.attributes('style')).toContain('--visu-title-w: 320px')
+    expect(fixed.classes()).toContain('sm:w-[var(--visu-title-w)]')
+    wrapper!.unmount()
+
+    mountHeader({ show_title: true })
+    const auto = wrapper!.get('[data-testid="visu-header-title"]')
+    expect(auto.attributes('style')).toBeUndefined()
+    expect(auto.classes()).not.toContain('sm:w-[var(--visu-title-w)]')
+  })
+
   describe('back arrow', () => {
     afterEach(() => {
       window.history.replaceState(null, '')
