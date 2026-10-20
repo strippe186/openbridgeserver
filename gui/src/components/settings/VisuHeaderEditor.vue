@@ -33,7 +33,16 @@
           </div>
         </div>
         <div v-if="menuTarget" class="form-group">
-          <label class="label">{{ $t('settings.visuHeader.icon') }}</label>
+          <div class="flex items-center justify-between">
+            <label class="label">{{ $t('settings.visuHeader.icon') }}</label>
+            <button
+              v-if="modelValue.menu_icon"
+              type="button"
+              class="btn-ghost btn-sm text-slate-400 hover:text-red-500"
+              data-testid="btn-clear-header-menu-icon"
+              @click="set('menu_icon', '')"
+            >{{ $t('settings.visuHeader.removeIcon') }}</button>
+          </div>
           <div class="p-3 rounded-lg border border-slate-200 dark:border-slate-700/60 bg-white dark:bg-slate-900/40">
             <IconPicker :model-value="modelValue.menu_icon" @update:model-value="set('menu_icon', $event)" />
           </div>

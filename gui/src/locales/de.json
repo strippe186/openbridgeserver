@@ -3583,6 +3583,7 @@
       "menuLabel": "Beschriftung",
       "menuLabelPlaceholder": "z. B. Menü",
       "icon": "Icon",
+      "removeIcon": "Icon entfernen",
       "values": "Datenpunkt-Werte",
       "valuesHint": "Bis zu drei Werte, z. B. die Außentemperatur. Sie sind auf jeder Seite lesbar, die der Betrachter öffnen darf.",
       "datapoint": "Datenpunkt",
