@@ -50,6 +50,10 @@ def test_defaults_reproduce_the_classic_bar():
     assert (styled.arrow_position, styled.arrow_style, styled.arrow_size) == ("title", "bold", "large")
     with pytest.raises(ValueError):
         VisuHeader(arrow_size="huge")
+    assert VisuHeader(arrow_position="right", title_width=320).title_width == 320
+    assert header.title_width == 0
+    with pytest.raises(ValueError):
+        VisuHeader(title_width=801)
 
 
 def test_normalisation_and_limits():

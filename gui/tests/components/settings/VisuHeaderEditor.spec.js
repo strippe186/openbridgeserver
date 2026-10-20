@@ -93,6 +93,31 @@ describe('VisuHeaderEditor', () => {
     expect(wrapper.get('[data-testid="select-header-arrow_size"]').element.value).toBe('large')
   })
 
+  it('sets a fixed title width only while the title is shown, clamped to 0…800', async () => {
+    const { wrapper, model } = mountEditor(header())
+
+    expect(wrapper.find('[data-testid="input-header-title-width"]').exists()).toBe(false)
+    await wrapper.get('[data-testid="chk-header-show_title"]').setValue(true)
+    const input = wrapper.get('[data-testid="input-header-title-width"]')
+    expect(input.element.value).toBe('0')
+
+    await input.setValue('320')
+    expect(model().title_width).toBe(320)
+    await input.setValue('5000')
+    expect(model().title_width).toBe(800)
+    await input.setValue('-3')
+    expect(model().title_width).toBe(0)
+    await input.setValue('abc')
+    expect(model().title_width).toBe(0)
+  })
+
+  it('offers the arrows in front of the displays on the right', async () => {
+    const { wrapper, model } = mountEditor(header({ show_next: true }))
+
+    await wrapper.get('[data-testid="select-header-arrow_position"]').setValue('right')
+    expect(model().arrow_position).toBe('right')
+  })
+
   it('offers a deleted menu page as its own entry', () => {
     const { wrapper } = mountEditor(header({ menu_page_id: 'gone' }))
 

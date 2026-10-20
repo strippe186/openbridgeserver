@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 VISU_HEADER_KEY = "visu.header"
 MAX_HEADER_VALUES = 3
+MAX_TITLE_WIDTH = 800
 
 
 class HeaderValue(BaseModel):
@@ -55,6 +56,8 @@ class VisuHeader(BaseModel):
     sticky: bool = False
     show_breadcrumb: bool = True
     show_title: bool = False
+    # Fixed title width in px from tablet width up, so arrows behind it stay put (0 = automatic).
+    title_width: int = Field(default=0, ge=0, le=MAX_TITLE_WIDTH)
     menu_page_id: str | None = None
     # The menu button leads to the device profile's own start page instead of
     # menu_page_id — so one header serves Visus with different start pages.
@@ -67,9 +70,10 @@ class VisuHeader(BaseModel):
     # Arrows: back to the previously visited page / on to the next page in the same folder.
     show_back: bool = False
     show_next: bool = False
-    # Where the arrows sit (at the bar's edges or right after the title), their
+    # Where the arrows sit (at the bar's edges, right after the title, or in front
+    # of the displays on the right), their
     # shape (thin ← → or bold ◀ ▶) and size ("auto": small on phones, larger on wide screens).
-    arrow_position: Literal["edges", "title"] = "edges"
+    arrow_position: Literal["edges", "title", "right"] = "edges"
     arrow_style: Literal["thin", "bold"] = "thin"
     arrow_size: Literal["auto", "small", "medium", "large"] = "auto"
     show_theme_toggle: bool = True

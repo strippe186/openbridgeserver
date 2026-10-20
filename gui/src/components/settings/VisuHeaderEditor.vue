@@ -13,6 +13,21 @@
         </label>
       </div>
 
+      <div v-if="modelValue.show_title" class="form-group">
+        <label class="label">{{ $t('settings.visuHeader.titleWidth') }}</label>
+        <input
+          :value="modelValue.title_width ?? 0"
+          type="number"
+          min="0"
+          :max="MAX_TITLE_WIDTH"
+          step="10"
+          class="input w-32"
+          data-testid="input-header-title-width"
+          @input="set('title_width', titleWidth($event.target.value))"
+        />
+        <p class="text-xs text-slate-500 mt-1">{{ $t('settings.visuHeader.titleWidthHint') }}</p>
+      </div>
+
       <!-- Pfeile: Anordnung, Form, Größe -->
       <div v-if="modelValue.show_back || modelValue.show_next" class="grid grid-cols-1 sm:grid-cols-3 gap-3" data-testid="header-arrow-options">
         <div v-for="option in ARROW_OPTIONS" :key="option.key" class="form-group">
@@ -121,12 +136,13 @@ import IconPicker from '@/components/ui/IconPicker.vue'
 
 // Mirrors obs/visu_header.py.
 const MAX_HEADER_VALUES = 3
+const MAX_TITLE_WIDTH = 800
 const DECIMALS = [0, 1, 2, 3]
 // Select value for "the device profile's own start page" (menu_to_start).
 const START = '__start__'
 // Mirrors arrow_position / arrow_style / arrow_size in obs/visu_header.py (first = default).
 const ARROW_OPTIONS = [
-  { key: 'arrow_position', values: ['edges', 'title'] },
+  { key: 'arrow_position', values: ['edges', 'title', 'right'] },
   { key: 'arrow_style', values: ['thin', 'bold'] },
   { key: 'arrow_size', values: ['auto', 'small', 'medium', 'large'] },
 ]
@@ -156,6 +172,11 @@ function setMenuTarget(value) {
     menu_to_start: value === START,
     menu_page_id: value === START ? null : value || null,
   })
+}
+
+/** Pixel width within 0…MAX_TITLE_WIDTH; an empty or invalid entry means "automatic" (0). */
+function titleWidth(raw) {
+  return Math.min(Math.max(Math.round(Number(raw)) || 0, 0), MAX_TITLE_WIDTH)
 }
 
 function setValue(index, key, value) {
