@@ -28,6 +28,8 @@ export const FALLBACK_HEADER: VisuHeader = {
   show_clock: false,
   show_date: false,
   values: [],
+  show_back: false,
+  show_next: false,
   show_theme_toggle: true,
   show_login: true,
 }

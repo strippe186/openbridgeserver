@@ -41,6 +41,32 @@ function openMenu() {
   router.push(header.value.menu_to_start ? device.startRoute : { name: 'viewer', params: { id: header.value.menu_page_id } })
 }
 
+// Pfeil →: nächste Seite im selben Ordner (Reihenfolge der Seitenverwaltung),
+// nach der letzten wieder die erste. Ohne weitere Seite kein Pfeil.
+const nextPageId = computed(() => {
+  const node = visuStore.getNode(props.id)
+  if (node?.type !== 'PAGE') return null
+  const pages = visuStore.getChildren(node.parent_id).filter((n) => n.type === 'PAGE')
+  if (pages.length < 2) return null
+  const index = pages.findIndex((n) => n.id === node.id)
+  return pages[(index + 1) % pages.length].id
+})
+
+// Pfeil ←: zur zuvor besuchten Seite; ohne Verlauf (direkt geöffnet) eine
+// Ebene höher, ganz oben zur Startseite des Geräts.
+function goBack() {
+  if (window.history.state?.back) {
+    router.back()
+    return
+  }
+  const parentId = visuStore.getNode(props.id)?.parent_id
+  router.push(parentId ? { name: 'viewer', params: { id: parentId } } : device.startRoute)
+}
+
+function goNext() {
+  router.push({ name: 'viewer', params: { id: nextPageId.value } })
+}
+
 function valueText(item: VisuHeaderValue): string {
   const dp = dpStore.getValue(item.datapoint_id)
   if (!dp || dp.v === null || dp.v === undefined) return '—'
@@ -67,6 +93,14 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
     data-testid="visu-header"
   >
     <div class="flex items-center gap-3 min-w-0">
+      <button
+        v-if="header.show_back"
+        class="shrink-0 leading-none rounded text-base px-1.5 py-0.5 sm:text-3xl sm:px-3 sm:py-1 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+        :title="$t('viewer.headerBack')"
+        :aria-label="$t('viewer.headerBack')"
+        data-testid="visu-header-back"
+        @click="goBack"
+      >←</button>
       <button
         v-if="showMenu"
         class="flex items-center gap-1.5 text-sm font-medium px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors shrink-0"
@@ -116,6 +150,14 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
         @click="theme.toggle()"
       >{{ theme.isDark ? '☀️' : '🌙' }}</button>
       <AuthButton v-if="header.show_login || visuStore.isLoggedIn" />
+      <button
+        v-if="header.show_next && nextPageId"
+        class="shrink-0 leading-none rounded text-base px-1.5 py-0.5 sm:text-3xl sm:px-3 sm:py-1 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+        :title="$t('viewer.headerNext')"
+        :aria-label="$t('viewer.headerNext')"
+        data-testid="visu-header-next"
+        @click="goNext"
+      >→</button>
     </div>
   </header>
 </template>

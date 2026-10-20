@@ -114,7 +114,7 @@ const MAX_HEADER_VALUES = 3
 const DECIMALS = [0, 1, 2, 3]
 // Select value for "the device profile's own start page" (menu_to_start).
 const START = '__start__'
-const FLAGS = ['sticky', 'show_title', 'show_breadcrumb', 'show_clock', 'show_date', 'show_theme_toggle', 'show_login']
+const FLAGS = ['sticky', 'show_title', 'show_breadcrumb', 'show_back', 'show_next', 'show_clock', 'show_date', 'show_theme_toggle', 'show_login']
 
 const props = defineProps({
   modelValue: { type: Object, required: true },

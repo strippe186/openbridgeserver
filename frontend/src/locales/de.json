@@ -137,7 +137,9 @@
     }
   },
   "viewer": {
-    "noVisuSelected": "Keine Visu ausgewählt"
+    "noVisuSelected": "Keine Visu ausgewählt",
+    "headerBack": "Zurück",
+    "headerNext": "Nächste Seite"
   },
   "pin": {
     "title": "Zugang gesichert",

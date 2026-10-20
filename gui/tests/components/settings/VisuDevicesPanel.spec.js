@@ -231,10 +231,11 @@ describe('VisuDevicesPanel', () => {
     expect(card.get('[data-testid="input-header-value-datapoint"]').attributes('data-name')).toBe('Außentemperatur')
     await card.get('[data-testid="chk-header-sticky"]').setValue(true)
     await card.get('[data-testid="chk-header-show_clock"]').setValue(true)
+    await card.get('[data-testid="chk-header-show_next"]').setValue(true)
     await card.get('[data-testid="btn-save-visu-header"]').trigger('click')
     await flushPromises()
 
-    expect(visuHeaderApi.update).toHaveBeenCalledWith(header({ sticky: true, show_clock: true, values: [{ datapoint_id: DP, label: 'Außen', icon: '🌡', decimals: 1 }] }))
+    expect(visuHeaderApi.update).toHaveBeenCalledWith(header({ sticky: true, show_clock: true, show_next: true, values: [{ datapoint_id: DP, label: 'Außen', icon: '🌡', decimals: 1 }] }))
     expect(card.get('[data-testid="visu-header-msg"]').text()).toBe('Kopfleiste gespeichert.')
   })
 

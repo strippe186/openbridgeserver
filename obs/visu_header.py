@@ -64,6 +64,9 @@ class VisuHeader(BaseModel):
     show_clock: bool = False
     show_date: bool = False
     values: list[HeaderValue] = Field(default_factory=list, max_length=MAX_HEADER_VALUES)
+    # Arrows: back to the previously visited page / on to the next page in the same folder.
+    show_back: bool = False
+    show_next: bool = False
     show_theme_toggle: bool = True
     show_login: bool = True
 

@@ -137,7 +137,9 @@
     }
   },
   "viewer": {
-    "noVisuSelected": "No visu selected"
+    "noVisuSelected": "No visu selected",
+    "headerBack": "Back",
+    "headerNext": "Next page"
   },
   "pin": {
     "title": "Access secured",
