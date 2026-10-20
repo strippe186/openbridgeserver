@@ -50,6 +50,10 @@ describe('VisuHeaderEditor', () => {
     await wrapper.get('[data-testid="icon-stub"]').setValue('☰')
     expect(model()).toMatchObject({ menu_page_id: 'menu', menu_label: 'Menü', menu_icon: '☰' })
 
+    await wrapper.get('[data-testid="btn-clear-header-menu-icon"]').trigger('click')
+    expect(model().menu_icon).toBe('')
+    expect(wrapper.find('[data-testid="btn-clear-header-menu-icon"]').exists()).toBe(false)
+
     await wrapper.get('[data-testid="select-header-menu-page"]').setValue('')
     expect(model().menu_page_id).toBeNull()
   })

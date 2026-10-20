@@ -3582,6 +3582,7 @@
       "menuLabel": "Label",
       "menuLabelPlaceholder": "e.g. Menu",
       "icon": "Icon",
+      "removeIcon": "Remove icon",
       "values": "Datapoint values",
       "valuesHint": "Up to three values, e.g. the outside temperature. They are readable on every page the viewer may open.",
       "datapoint": "Datapoint",
