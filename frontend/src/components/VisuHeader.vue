@@ -63,6 +63,23 @@ function goBack() {
   router.push(parentId ? { name: 'viewer', params: { id: parentId } } : device.startRoute)
 }
 
+// Pfeile: Anordnung, Form und Größe aus der Kopfleisten-Einstellung.
+const ARROW_SIZES: Record<string, string> = {
+  auto: 'text-base px-1.5 py-0.5 sm:text-3xl sm:px-3 sm:py-1',
+  small: 'text-base px-1.5 py-0.5',
+  medium: 'text-2xl px-2 py-1',
+  large: 'text-4xl px-3 py-1',
+}
+const arrowsAtTitle = computed(() => header.value.arrow_position === 'title')
+const arrowClass = computed(() =>
+  `shrink-0 leading-none rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors ${ARROW_SIZES[header.value.arrow_size ?? 'auto'] ?? ARROW_SIZES.auto}`,
+)
+// U+FE0E: als Textzeichen darstellen, nicht als buntes Emoji (iOS).
+const bold = computed(() => header.value.arrow_style === 'bold')
+const backGlyph = computed(() => (bold.value ? '◀\uFE0E' : '←'))
+const nextGlyph = computed(() => (bold.value ? '▶\uFE0E' : '→'))
+const showNext = computed(() => !!header.value.show_next && !!nextPageId.value)
+
 function goNext() {
   router.push({ name: 'viewer', params: { id: nextPageId.value } })
 }
@@ -94,13 +111,13 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
   >
     <div class="flex items-center gap-3 min-w-0">
       <button
-        v-if="header.show_back"
-        class="shrink-0 leading-none rounded text-base px-1.5 py-0.5 sm:text-3xl sm:px-3 sm:py-1 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+        v-if="header.show_back && !arrowsAtTitle"
+        :class="arrowClass"
         :title="$t('viewer.headerBack')"
         :aria-label="$t('viewer.headerBack')"
         data-testid="visu-header-back"
         @click="goBack"
-      >←</button>
+      >{{ backGlyph }}</button>
       <button
         v-if="showMenu"
         class="flex items-center gap-1.5 text-sm font-medium px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors shrink-0"
@@ -111,6 +128,24 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
         <span v-if="menuLabel">{{ menuLabel }}</span>
       </button>
       <h1 v-if="header.show_title" class="text-base font-semibold truncate" data-testid="visu-header-title">{{ title }}</h1>
+      <span v-if="arrowsAtTitle && (header.show_back || showNext)" class="flex items-center gap-1 shrink-0" data-testid="visu-header-arrows">
+        <button
+          v-if="header.show_back"
+          :class="arrowClass"
+          :title="$t('viewer.headerBack')"
+          :aria-label="$t('viewer.headerBack')"
+          data-testid="visu-header-back"
+          @click="goBack"
+        >{{ backGlyph }}</button>
+        <button
+          v-if="showNext"
+          :class="arrowClass"
+          :title="$t('viewer.headerNext')"
+          :aria-label="$t('viewer.headerNext')"
+          data-testid="visu-header-next"
+          @click="goNext"
+        >{{ nextGlyph }}</button>
+      </span>
       <Breadcrumb v-if="header.show_breadcrumb" />
     </div>
 
@@ -151,13 +186,13 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
       >{{ theme.isDark ? '☀️' : '🌙' }}</button>
       <AuthButton v-if="header.show_login || visuStore.isLoggedIn" />
       <button
-        v-if="header.show_next && nextPageId"
-        class="shrink-0 leading-none rounded text-base px-1.5 py-0.5 sm:text-3xl sm:px-3 sm:py-1 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+        v-if="showNext && !arrowsAtTitle"
+        :class="arrowClass"
         :title="$t('viewer.headerNext')"
         :aria-label="$t('viewer.headerNext')"
         data-testid="visu-header-next"
         @click="goNext"
-      >→</button>
+      >{{ nextGlyph }}</button>
     </div>
   </header>
 </template>

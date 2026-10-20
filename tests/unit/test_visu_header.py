@@ -45,6 +45,11 @@ def test_defaults_reproduce_the_classic_bar():
     assert (header.show_theme_toggle, header.show_login) == (True, True)
     assert (header.show_back, header.show_next) == (False, False)
     assert VisuHeader(show_back=True, show_next=True).model_dump()["show_next"] is True
+    assert (header.arrow_position, header.arrow_style, header.arrow_size) == ("edges", "thin", "auto")
+    styled = VisuHeader(arrow_position="title", arrow_style="bold", arrow_size="large")
+    assert (styled.arrow_position, styled.arrow_style, styled.arrow_size) == ("title", "bold", "large")
+    with pytest.raises(ValueError):
+        VisuHeader(arrow_size="huge")
 
 
 def test_normalisation_and_limits():

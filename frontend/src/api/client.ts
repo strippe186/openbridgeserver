@@ -967,6 +967,9 @@ export interface VisuHeader {
   /** Pfeil ← zurück / Pfeil → nächste Seite im selben Ordner */
   show_back?: boolean
   show_next?: boolean
+  arrow_position?: 'edges' | 'title'
+  arrow_style?: 'thin' | 'bold'
+  arrow_size?: 'auto' | 'small' | 'medium' | 'large'
   show_theme_toggle: boolean
   show_login: boolean
 }
