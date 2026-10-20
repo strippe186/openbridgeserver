@@ -19,18 +19,20 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div class="form-group">
             <label class="label">{{ $t('settings.visuHeader.menuPage') }}</label>
-            <select :value="modelValue.menu_page_id ?? ''" class="input" data-testid="select-header-menu-page" @change="set('menu_page_id', $event.target.value || null)">
+            <select :value="menuTarget" class="input" data-testid="select-header-menu-page" @change="setMenuTarget($event.target.value)">
               <option value="">{{ $t('settings.visuHeader.menuNone') }}</option>
+              <option :value="START">{{ $t('settings.visuHeader.menuStart') }}</option>
               <option v-if="menuPageMissing" :value="modelValue.menu_page_id">{{ $t('settings.visuDevices.missingPage') }}</option>
               <option v-for="page in pageOptions" :key="page.id" :value="page.id">{{ page.label }}</option>
             </select>
+            <p v-if="modelValue.menu_to_start" class="text-xs text-slate-500 mt-1" data-testid="header-menu-start-hint">{{ $t('settings.visuHeader.menuStartHint') }}</p>
           </div>
-          <div v-if="modelValue.menu_page_id" class="form-group">
+          <div v-if="menuTarget" class="form-group">
             <label class="label">{{ $t('settings.visuHeader.menuLabel') }}</label>
             <input :value="modelValue.menu_label" type="text" class="input" maxlength="40" :placeholder="$t('settings.visuHeader.menuLabelPlaceholder')" data-testid="input-header-menu-label" @input="set('menu_label', $event.target.value)" />
           </div>
         </div>
-        <div v-if="modelValue.menu_page_id" class="form-group">
+        <div v-if="menuTarget" class="form-group">
           <label class="label">{{ $t('settings.visuHeader.icon') }}</label>
           <div class="p-3 rounded-lg border border-slate-200 dark:border-slate-700/60 bg-white dark:bg-slate-900/40">
             <IconPicker :model-value="modelValue.menu_icon" @update:model-value="set('menu_icon', $event)" />
@@ -101,6 +103,8 @@ import IconPicker from '@/components/ui/IconPicker.vue'
 // Mirrors obs/visu_header.py.
 const MAX_HEADER_VALUES = 3
 const DECIMALS = [0, 1, 2, 3]
+// Select value for "the device profile's own start page" (menu_to_start).
+const START = '__start__'
 const FLAGS = ['sticky', 'show_title', 'show_breadcrumb', 'show_clock', 'show_date', 'show_theme_toggle', 'show_login']
 
 const props = defineProps({
@@ -114,10 +118,19 @@ const emit = defineEmits(['update:modelValue', 'datapoint-selected'])
 const menuPageMissing = computed(() =>
   !!props.modelValue.menu_page_id && !props.pageOptions.some(page => page.id === props.modelValue.menu_page_id),
 )
+const menuTarget = computed(() => (props.modelValue.menu_to_start ? START : (props.modelValue.menu_page_id ?? '')))
 const canAddValue = computed(() => props.modelValue.values.length < MAX_HEADER_VALUES)
 
 function set(key, value) {
   emit('update:modelValue', { ...props.modelValue, [key]: value })
+}
+
+function setMenuTarget(value) {
+  emit('update:modelValue', {
+    ...props.modelValue,
+    menu_to_start: value === START,
+    menu_page_id: value === START ? null : value || null,
+  })
 }
 
 function setValue(index, key, value) {

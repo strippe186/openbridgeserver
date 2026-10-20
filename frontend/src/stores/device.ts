@@ -22,6 +22,7 @@ export const FALLBACK_HEADER: VisuHeader = {
   show_breadcrumb: true,
   show_title: false,
   menu_page_id: null,
+  menu_to_start: false,
   menu_label: '',
   menu_icon: '',
   show_clock: false,

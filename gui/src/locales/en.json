@@ -3578,6 +3578,8 @@
       "menu": "Menu/start button",
       "menuPage": "Target page",
       "menuNone": "— no button —",
+      "menuStart": "Start page of the device",
+      "menuStartHint": "Takes every device to the start page of its device profile (without a profile: the overview).",
       "menuLabel": "Label",
       "menuLabelPlaceholder": "e.g. Menu",
       "icon": "Icon",

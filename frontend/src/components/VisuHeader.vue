@@ -26,12 +26,19 @@ const theme = useThemeStore()
 
 const header = computed(() => device.header)
 const title = computed(() => visuStore.getNode(props.id)?.name ?? '')
-const menuLabel = computed(() => header.value.menu_label || visuStore.getNode(header.value.menu_page_id ?? '')?.name || '')
+// Ziel des Menü-Knopfs: eine feste Seite oder die Startseite des Geräteprofils
+// (ohne Profil bzw. Startseite: die Übersicht).
+const menuPageId = computed(() =>
+  header.value.menu_to_start ? (device.profile?.start_node_id ?? null) : header.value.menu_page_id,
+)
+const menuLabel = computed(() => header.value.menu_label || visuStore.getNode(menuPageId.value ?? '')?.name || '')
 const menuIcon = computed(() => header.value.menu_icon || (menuLabel.value ? '' : '☰'))
-const showMenu = computed(() => !!header.value.menu_page_id && header.value.menu_page_id !== props.id)
+const showMenu = computed(() =>
+  (header.value.menu_to_start || !!header.value.menu_page_id) && menuPageId.value !== props.id,
+)
 
 function openMenu() {
-  router.push({ name: 'viewer', params: { id: header.value.menu_page_id } })
+  router.push(header.value.menu_to_start ? device.startRoute : { name: 'viewer', params: { id: header.value.menu_page_id } })
 }
 
 function valueText(item: VisuHeaderValue): string {

@@ -66,7 +66,7 @@ Außentemperatur, auf dem Visu-PC zusätzlich den Pfad.
 | **Fixieren** | Die Leiste bleibt beim Scrollen oben stehen, statt mit der Seite nach oben wegzuwandern — praktisch auf dem Handy. |
 | **Seitenüberschrift** | Name der geöffneten Seite. |
 | **Pfad (Breadcrumb)** | Der bisherige Pfad „Haus › EG › Küche“. |
-| **Menü-/Start-Knopf** | Ein Knopf links, der eine wählbare Seite öffnet, z. B. eine selbst gestaltete Menüseite. Beschriftung und Icon sind frei; ohne Beschriftung erscheint der Name der Seite. Auf der Zielseite selbst wird er ausgeblendet. |
+| **Menü-/Start-Knopf** | Ein Knopf links, der eine wählbare Seite öffnet, z. B. eine selbst gestaltete Menüseite — oder mit **Startseite des Geräts** die Startseite aus dem jeweiligen Geräteprofil (ohne Profil die Übersicht). So reicht eine Kopfleiste für Visus mit ganz verschiedenen Startseiten. Beschriftung und Icon sind frei; ohne Beschriftung erscheint der Name der Seite. Auf der Zielseite selbst wird er ausgeblendet. |
 | **Uhrzeit / Datum** | Im Zeit- und Datumsformat aus **Einstellungen → Allgemein**. |
 | **Datenpunkt-Werte** | Bis zu drei Werte, z. B. die Außentemperatur, je mit Bezeichnung, Icon und Nachkommastellen. Die Einheit kommt vom Datenpunkt. |
 | **Tag/Nacht-Umschalter** | Der Knopf ☀️/🌙. |

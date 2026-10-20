@@ -3578,6 +3578,8 @@
       "menu": "Menü-/Start-Knopf",
       "menuPage": "Zielseite",
       "menuNone": "— kein Knopf —",
+      "menuStart": "Startseite des Geräts",
+      "menuStartHint": "Führt jedes Gerät zu der Startseite aus seinem Geräteprofil (ohne Profil: zur Übersicht).",
       "menuLabel": "Beschriftung",
       "menuLabelPlaceholder": "z. B. Menü",
       "icon": "Icon",

@@ -61,7 +61,7 @@ device, e.g. only clock and outside temperature on the phone, plus the path on t
 | **Pin** | The bar stays at the top while scrolling instead of moving up with the page — handy on phones. |
 | **Page title** | Name of the open page. |
 | **Path (breadcrumb)** | The previous path "House › Ground floor › Kitchen". |
-| **Menu/start button** | A button on the left that opens a page of your choice, e.g. a menu page you designed yourself. Label and icon are free; without a label the page name is shown. It is hidden on the target page itself. |
+| **Menu/start button** | A button on the left that opens a page of your choice, e.g. a menu page you designed yourself — or, with **Start page of the device**, the start page of each device's profile (without a profile, the overview). One header bar then serves Visus with entirely different start pages. Label and icon are free; without a label the page name is shown. It is hidden on the target page itself. |
 | **Time / Date** | In the time and date format from **Settings → General**. |
 | **Datapoint values** | Up to three values, e.g. the outside temperature, each with label, icon and decimal places. The unit comes from the datapoint. |
 | **Day/night toggle** | The ☀️/🌙 button. |
