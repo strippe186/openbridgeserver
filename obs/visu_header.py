@@ -19,7 +19,7 @@ import logging
 import uuid
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +56,9 @@ class VisuHeader(BaseModel):
     show_breadcrumb: bool = True
     show_title: bool = False
     menu_page_id: str | None = None
+    # The menu button leads to the device profile's own start page instead of
+    # menu_page_id — so one header serves Visus with different start pages.
+    menu_to_start: bool = False
     menu_label: str = Field(default="", max_length=40)
     menu_icon: str = Field(default="", max_length=200)
     show_clock: bool = False
@@ -73,6 +76,12 @@ class VisuHeader(BaseModel):
     @classmethod
     def _strip(cls, value: str) -> str:
         return value.strip()
+
+    @model_validator(mode="after")
+    def _one_menu_target(self) -> VisuHeader:
+        if self.menu_to_start:
+            self.menu_page_id = None
+        return self
 
 
 def parse_visu_header(raw: str) -> VisuHeader:

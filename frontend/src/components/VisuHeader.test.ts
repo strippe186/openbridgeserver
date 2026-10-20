@@ -49,6 +49,7 @@ function mountHeader(header: Partial<VisuHeader>, props: { id?: string; isPage?:
 const has = (testid: string) => wrapper!.find(`[data-testid="${testid}"]`).exists()
 
 beforeEach(() => {
+  localStorage.clear()
   setActivePinia(createPinia())
   push.mockReset()
   toggle.mockReset()
@@ -130,6 +131,32 @@ describe('VisuHeader', () => {
 
     mountHeader({ menu_page_id: 'hidden' })
     expect(wrapper!.get('[data-testid="visu-header-menu"] [data-testid="icon"]').text()).toBe('☰')
+  })
+
+  it('leads to the start page of the device profile', async () => {
+    const store = useDeviceStore()
+    store.devices = [{ slug: 'panel', name: 'Panel', start_node_id: 'menu', return_after_s: 0 }]
+    store.select('panel')
+    mountHeader({ menu_to_start: true, menu_page_id: null })
+
+    const button = wrapper!.get('[data-testid="visu-header-menu"]')
+    expect(button.text()).toBe('Menü-Seite')
+    await button.trigger('click')
+    expect(push).toHaveBeenCalledWith({ name: 'viewer', params: { id: 'menu' } })
+    wrapper!.unmount()
+
+    // On the start page itself the button is hidden.
+    mountHeader({ menu_to_start: true }, { id: 'menu' })
+    expect(has('visu-header-menu')).toBe(false)
+  })
+
+  it('leads to the overview for a device without a profile', async () => {
+    mountHeader({ menu_to_start: true })
+
+    const button = wrapper!.get('[data-testid="visu-header-menu"]')
+    expect(button.get('[data-testid="icon"]').text()).toBe('☰')
+    await button.trigger('click')
+    expect(push).toHaveBeenCalledWith({ name: 'tree' })
   })
 
   it('hides the menu button on the menu page itself', () => {

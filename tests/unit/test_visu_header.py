@@ -70,6 +70,14 @@ def test_stored_value_round_trip_and_lenient_load(caplog):
     assert VISU_HEADER_KEY in caplog.text
 
 
+def test_menu_to_start_replaces_a_menu_page():
+    assert VisuHeader().menu_to_start is False
+    header = VisuHeader(menu_to_start=True, menu_page_id="menu")
+    assert (header.menu_to_start, header.menu_page_id) == (True, None)
+    assert header_references([header]) == (set(), set())
+    assert VisuHeader(menu_page_id="menu").menu_page_id == "menu"
+
+
 def test_header_references():
     headers = [VisuHeader(menu_page_id="menu", values=[{"datapoint_id": DP}]), VisuHeader(values=[{"datapoint_id": DP2}])]
     assert header_references(headers) == ({"menu"}, {DP, DP2})

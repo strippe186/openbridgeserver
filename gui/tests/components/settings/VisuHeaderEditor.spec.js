@@ -44,7 +44,7 @@ describe('VisuHeaderEditor', () => {
     const { wrapper, model } = mountEditor(header())
 
     expect(wrapper.find('[data-testid="input-header-menu-label"]').exists()).toBe(false)
-    expect(wrapper.get('[data-testid="select-header-menu-page"]').findAll('option').map(o => o.text())).toEqual(['— kein Knopf —', 'Haus › Menü'])
+    expect(wrapper.get('[data-testid="select-header-menu-page"]').findAll('option').map(o => o.text())).toEqual(['— kein Knopf —', 'Startseite des Geräts', 'Haus › Menü'])
     await wrapper.get('[data-testid="select-header-menu-page"]').setValue('menu')
     await wrapper.get('[data-testid="input-header-menu-label"]').setValue('Menü')
     await wrapper.get('[data-testid="icon-stub"]').setValue('☰')
@@ -54,10 +54,25 @@ describe('VisuHeaderEditor', () => {
     expect(model().menu_page_id).toBeNull()
   })
 
+  it('can lead to the start page of each device instead of one page', async () => {
+    const { wrapper, model } = mountEditor(header({ menu_page_id: 'menu' }))
+    const select = wrapper.get('[data-testid="select-header-menu-page"]')
+
+    expect(wrapper.find('[data-testid="header-menu-start-hint"]').exists()).toBe(false)
+    await select.setValue('__start__')
+    expect(model()).toMatchObject({ menu_to_start: true, menu_page_id: null })
+    expect(select.element.value).toBe('__start__')
+    expect(wrapper.find('[data-testid="header-menu-start-hint"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="input-header-menu-label"]').exists()).toBe(true)
+
+    await select.setValue('menu')
+    expect(model()).toMatchObject({ menu_to_start: false, menu_page_id: 'menu' })
+  })
+
   it('offers a deleted menu page as its own entry', () => {
     const { wrapper } = mountEditor(header({ menu_page_id: 'gone' }))
 
-    expect(wrapper.get('[data-testid="select-header-menu-page"]').findAll('option')[1].text()).toBe('(gelöschte Seite)')
+    expect(wrapper.get('[data-testid="select-header-menu-page"]').findAll('option')[2].text()).toBe('(gelöschte Seite)')
   })
 
   it('adds up to three values, edits and removes them', async () => {

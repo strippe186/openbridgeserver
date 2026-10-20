@@ -941,6 +941,8 @@ export interface VisuHeader {
   show_breadcrumb: boolean
   show_title: boolean
   menu_page_id: string | null
+  /** Menü-Knopf führt zur Startseite des Geräteprofils statt zu menu_page_id. */
+  menu_to_start?: boolean
   menu_label: string
   menu_icon: string
   show_clock: boolean
