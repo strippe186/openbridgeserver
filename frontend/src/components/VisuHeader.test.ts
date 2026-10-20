@@ -261,6 +261,49 @@ describe('VisuHeader', () => {
     expect(has('visu-header-next')).toBe(false)
   })
 
+  it('places thin arrows at the edges with automatic size by default', () => {
+    mountHeader({ show_back: true, show_next: true })
+
+    expect(has('visu-header-arrows')).toBe(false)
+    expect(wrapper!.get('[data-testid="visu-header-back"]').text()).toBe('←')
+    expect(wrapper!.get('[data-testid="visu-header-next"]').text()).toBe('→')
+    expect(wrapper!.get('[data-testid="visu-header-next"]').classes()).toEqual(expect.arrayContaining(['text-base', 'sm:text-3xl']))
+  })
+
+  it('puts bold arrows of the chosen size right after the title', () => {
+    mountHeader({ show_title: true, show_back: true, show_next: true, arrow_position: 'title', arrow_style: 'bold', arrow_size: 'large' })
+
+    const group = wrapper!.get('[data-testid="visu-header-arrows"]')
+    expect(group.element.previousElementSibling?.getAttribute('data-testid')).toBe('visu-header-title')
+    expect(group.findAll('button').map(b => b.text())).toEqual(['◀\uFE0E', '▶\uFE0E'])
+    expect(group.get('[data-testid="visu-header-next"]').classes()).toContain('text-4xl')
+    expect(wrapper!.findAll('[data-testid="visu-header-back"]')).toHaveLength(1)
+    expect(wrapper!.findAll('[data-testid="visu-header-next"]')).toHaveLength(1)
+  })
+
+  it.each([
+    ['small', 'text-base'],
+    ['medium', 'text-2xl'],
+    ['bogus', 'sm:text-3xl'],
+  ])('sizes the arrows %s', (size, cls) => {
+    mountHeader({ show_back: true, arrow_size: size as VisuHeader['arrow_size'] })
+
+    expect(wrapper!.get('[data-testid="visu-header-back"]').classes()).toContain(cls)
+  })
+
+  it('shows the arrow group at the title with only one arrow, and none without arrows', () => {
+    mountHeader({ show_next: true, arrow_position: 'title' }, { id: 'menu' })
+    expect(has('visu-header-arrows')).toBe(false)
+    wrapper!.unmount()
+
+    mountHeader({ show_next: true, arrow_position: 'title' })
+    expect(wrapper!.get('[data-testid="visu-header-arrows"]').findAll('button')).toHaveLength(1)
+    wrapper!.unmount()
+
+    mountHeader({ show_back: true, arrow_position: 'title' }, { id: 'menu' })
+    expect(wrapper!.get('[data-testid="visu-header-arrows"]').findAll('button')).toHaveLength(1)
+  })
+
   describe('back arrow', () => {
     afterEach(() => {
       window.history.replaceState(null, '')

@@ -73,6 +73,26 @@ describe('VisuHeaderEditor', () => {
     expect(model()).toMatchObject({ menu_to_start: false, menu_page_id: 'menu' })
   })
 
+  it('offers position, shape and size of the arrows once an arrow is on', async () => {
+    const { wrapper, model } = mountEditor(header())
+
+    expect(wrapper.find('[data-testid="header-arrow-options"]').exists()).toBe(false)
+    await wrapper.get('[data-testid="chk-header-show_back"]').setValue(true)
+    expect(wrapper.get('[data-testid="select-header-arrow_position"]').element.value).toBe('edges')
+    expect(wrapper.get('[data-testid="select-header-arrow_style"]').element.value).toBe('thin')
+    expect(wrapper.get('[data-testid="select-header-arrow_size"]').findAll('option').map(o => o.text()))
+      .toEqual(['Automatisch (Handy klein, PC groß)', 'Klein', 'Mittel', 'Groß'])
+
+    await wrapper.get('[data-testid="select-header-arrow_position"]').setValue('title')
+    await wrapper.get('[data-testid="select-header-arrow_style"]').setValue('bold')
+    await wrapper.get('[data-testid="select-header-arrow_size"]').setValue('large')
+    expect(model()).toMatchObject({ show_back: true, arrow_position: 'title', arrow_style: 'bold', arrow_size: 'large' })
+
+    await wrapper.get('[data-testid="chk-header-show_back"]').setValue(false)
+    await wrapper.get('[data-testid="chk-header-show_next"]').setValue(true)
+    expect(wrapper.get('[data-testid="select-header-arrow_size"]').element.value).toBe('large')
+  })
+
   it('offers a deleted menu page as its own entry', () => {
     const { wrapper } = mountEditor(header({ menu_page_id: 'gone' }))
 

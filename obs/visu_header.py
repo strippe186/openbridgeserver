@@ -17,7 +17,7 @@ from __future__ import annotations
 import json
 import logging
 import uuid
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -67,6 +67,11 @@ class VisuHeader(BaseModel):
     # Arrows: back to the previously visited page / on to the next page in the same folder.
     show_back: bool = False
     show_next: bool = False
+    # Where the arrows sit (at the bar's edges or right after the title), their
+    # shape (thin ← → or bold ◀ ▶) and size ("auto": small on phones, larger on wide screens).
+    arrow_position: Literal["edges", "title"] = "edges"
+    arrow_style: Literal["thin", "bold"] = "thin"
+    arrow_size: Literal["auto", "small", "medium", "large"] = "auto"
     show_theme_toggle: bool = True
     show_login: bool = True
 

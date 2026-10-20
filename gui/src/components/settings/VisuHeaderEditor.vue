@@ -13,6 +13,16 @@
         </label>
       </div>
 
+      <!-- Pfeile: Anordnung, Form, Größe -->
+      <div v-if="modelValue.show_back || modelValue.show_next" class="grid grid-cols-1 sm:grid-cols-3 gap-3" data-testid="header-arrow-options">
+        <div v-for="option in ARROW_OPTIONS" :key="option.key" class="form-group">
+          <label class="label">{{ $t(`settings.visuHeader.${option.key}`) }}</label>
+          <select :value="modelValue[option.key] ?? option.values[0]" class="input" :data-testid="`select-header-${option.key}`" @change="set(option.key, $event.target.value)">
+            <option v-for="value in option.values" :key="value" :value="value">{{ $t(`settings.visuHeader.${option.key}_${value}`) }}</option>
+          </select>
+        </div>
+      </div>
+
       <!-- Menü-/Start-Knopf -->
       <fieldset class="flex flex-col gap-2">
         <legend class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">{{ $t('settings.visuHeader.menu') }}</legend>
@@ -114,6 +124,12 @@ const MAX_HEADER_VALUES = 3
 const DECIMALS = [0, 1, 2, 3]
 // Select value for "the device profile's own start page" (menu_to_start).
 const START = '__start__'
+// Mirrors arrow_position / arrow_style / arrow_size in obs/visu_header.py (first = default).
+const ARROW_OPTIONS = [
+  { key: 'arrow_position', values: ['edges', 'title'] },
+  { key: 'arrow_style', values: ['thin', 'bold'] },
+  { key: 'arrow_size', values: ['auto', 'small', 'medium', 'large'] },
+]
 const FLAGS = ['sticky', 'show_title', 'show_breadcrumb', 'show_back', 'show_next', 'show_clock', 'show_date', 'show_theme_toggle', 'show_login']
 
 const props = defineProps({
