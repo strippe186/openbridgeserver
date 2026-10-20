@@ -7,6 +7,8 @@ GET    /api/v1/system/settings         read app settings (timezone, …)
 GET    /api/v1/system/display-settings display formatting settings (public, used by the Visu)
 PUT    /api/v1/system/settings         update app settings
 GET    /api/v1/system/visu-devices     Visu device profiles (public, used by the Visu)
+GET    /api/v1/system/visu-header      default Visu header bar (public, used by the Visu)
+PUT    /api/v1/system/visu-header      replace the default Visu header bar (admin only)
 PUT    /api/v1/system/visu-devices     replace the Visu device profiles (admin only)
 GET    /api/v1/system/history/settings read history backend configuration
 PUT    /api/v1/system/history/settings update history backend configuration
@@ -49,6 +51,7 @@ from obs.regional_format import (
     validate_regional_setting,
 )
 from obs.visu_devices import VISU_DEVICES_KEY, VisuDevice, VisuDevicesIn, dump_visu_devices, load_visu_devices
+from obs.visu_header import VISU_HEADER_KEY, VisuHeader, dump_visu_header, header_references, read_default_header
 
 logger = logging.getLogger(__name__)
 
@@ -336,6 +339,7 @@ async def update_visu_devices(
                 status_code=http_status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail=f"Unknown start page: {', '.join(unknown)}",
             )
+    await _require_header_references(db, [d.header for d in body.devices if d.header])
     async with db.transaction():
         await db.execute(
             "INSERT OR REPLACE INTO app_settings (key, value) VALUES (?, ?)",
@@ -344,6 +348,47 @@ async def update_visu_devices(
         writer = AuditLogWriter(db, build_audit_context(request, _admin))
         await writer.write_contract("PUT", "/api/v1/system/visu-devices", resource_id="global", commit=False)
     return body.devices
+
+
+async def _require_header_references(db: Database, headers: list[VisuHeader]) -> None:
+    """Reject headers that point at a page or datapoint that does not exist."""
+    pages, datapoints = header_references(headers)
+    for table, ids, label in (("visu_nodes", pages, "Unknown menu page"), ("datapoints", datapoints, "Unknown datapoint")):
+        if not ids:
+            continue
+        placeholders = ", ".join("?" for _ in ids)
+        rows = await db.fetchall(f"SELECT id FROM {table} WHERE id IN ({placeholders})", tuple(ids))
+        unknown = sorted(ids - {str(r["id"]) for r in rows})
+        if unknown:
+            raise HTTPException(status_code=http_status.HTTP_422_UNPROCESSABLE_CONTENT, detail=f"{label}: {', '.join(unknown)}")
+
+
+@router.get("/visu-header", response_model=VisuHeader)
+async def get_visu_header(db: Database = Depends(get_db)) -> VisuHeader:
+    """The default header bar of the Visu (device profiles may bring their own).
+
+    Unauthenticated like ``/visu-devices``: anonymous Visu devices render it.
+    """
+    return await read_default_header(db)
+
+
+@router.put("/visu-header", response_model=VisuHeader)
+async def update_visu_header(
+    body: VisuHeader,
+    request: Request = None,  # type: ignore[assignment]
+    db: Database = Depends(get_db),
+    _admin: str = Depends(get_admin_user),
+) -> VisuHeader:
+    """Replace the default header bar. Admin only."""
+    await _require_header_references(db, [body])
+    async with db.transaction():
+        await db.execute(
+            "INSERT OR REPLACE INTO app_settings (key, value) VALUES (?, ?)",
+            (VISU_HEADER_KEY, dump_visu_header(body)),
+        )
+        writer = AuditLogWriter(db, build_audit_context(request, _admin))
+        await writer.write_contract("PUT", "/api/v1/system/visu-header", resource_id="global", commit=False)
+    return body
 
 
 @router.put("/settings", response_model=AppSettingsOut)

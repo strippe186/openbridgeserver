@@ -35,6 +35,7 @@ from obs.api.v1.datapoint_config import collect_datapoint_ids_from_config, is_uu
 from obs.core.json import jsonable
 from obs.db.database import Database, get_db
 from obs.models.visu import PageConfig
+from obs.visu_header import header_datapoint_ids
 
 logger = logging.getLogger(__name__)
 
@@ -1180,6 +1181,8 @@ async def websocket_endpoint(
         scope = await _ws_authorized_datapoint_scope(db, current_principal)
         if page_id and scope is not None:
             await _merge_authenticated_page_scope(db, scope, page_id, current_principal, authenticated_page_session)
+            # Values the Visu header bar shows are display data meant for every viewer.
+            scope.update(await header_datapoint_ids(db))
         return scope
 
     if api_key and user == "__api_key__":
@@ -1240,6 +1243,8 @@ async def websocket_endpoint(
             # Keep the connection authenticated for page-scope sessions even if
             # page config cannot be parsed (e.g. lightweight test doubles).
             allowed_dp_ids = set()
+        # The header bar above the page may show a few values (e.g. the outside temperature).
+        allowed_dp_ids |= await header_datapoint_ids(db)
     if db is not None and page_id:
         ok, reason = await _authorize_visu_page_scope(
             db=db,

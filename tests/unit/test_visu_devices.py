@@ -150,7 +150,7 @@ async def test_put_stores_profiles_and_writes_audit(db):
     assert result == body.devices
     assert await get_visu_devices(db=db) == body.devices
     row = await db.fetchone("SELECT value FROM app_settings WHERE key = ?", (VISU_DEVICES_KEY,))
-    assert json.loads(row["value"])[0] == {"slug": "panel", "name": "Panel", "start_node_id": "start-1", "return_after_s": 90}
+    assert json.loads(row["value"])[0] == {"slug": "panel", "name": "Panel", "start_node_id": "start-1", "return_after_s": 90, "header": None}
     audit = await db.fetchone("SELECT * FROM audit_log_entries WHERE action = 'system.visu_devices.updated'")
     assert audit is not None
     assert audit["actor"] == "admin"

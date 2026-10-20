@@ -26,6 +26,7 @@ PUBLIC_ROUTE_ALLOWLIST: Final[frozenset[RouteSignature]] = frozenset(
         ("GET", "/api/v1/system/display-settings"),
         # Device profiles (start page, return-to-start) for the same anonymous/PIN Visu.
         ("GET", "/api/v1/system/visu-devices"),
+        ("GET", "/api/v1/system/visu-header"),
         # Visu alarms: the active list and its live channel reach anonymous/PIN Visu devices too.
         ("GET", "/api/v1/system/visu-alarms/active"),
         ("WEBSOCKET", "/api/v1/system/visu-alarms/ws"),
@@ -146,6 +147,7 @@ ROUTE_CLASSIFICATIONS: Final[dict[RouteSignature, RouteCategory]] = {
     ("GET", "/api/v1/system/datatypes"): "read_live",
     ("GET", "/api/v1/system/display-settings"): "public",
     ("GET", "/api/v1/system/visu-devices"): "public",
+    ("GET", "/api/v1/system/visu-header"): "public",
     ("GET", "/api/v1/system/visu-alarms"): "read_live",
     ("GET", "/api/v1/system/visu-alarms/active"): "public",
     ("WEBSOCKET", "/api/v1/system/visu-alarms/ws"): "public",
@@ -265,6 +267,7 @@ ROUTE_CLASSIFICATIONS: Final[dict[RouteSignature, RouteCategory]] = {
     ("PUT", "/api/v1/system/log-level"): "config_mutation",
     ("PUT", "/api/v1/system/settings"): "config_mutation",
     ("PUT", "/api/v1/system/visu-devices"): "config_mutation",
+    ("PUT", "/api/v1/system/visu-header"): "config_mutation",
     ("PUT", "/api/v1/system/visu-alarms"): "config_mutation",
     ("PUT", "/api/v1/visu/nodes/{node_id}/move"): "config_mutation",
     ("PUT", "/api/v1/visu/nodes/{node_id}/users"): "config_mutation",
