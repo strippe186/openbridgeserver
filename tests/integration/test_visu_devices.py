@@ -64,8 +64,8 @@ async def test_put_stores_profiles_and_get_returns_them_without_login(client, au
     resp = await client.put(URL, json={"devices": devices}, headers=auth_headers)
     assert resp.status_code == 200, resp.text
     expected = [
-        {"slug": "visu-pc", "name": "Visu-PC Flur", "start_node_id": page_id, "return_after_s": 120},
-        {"slug": "handy", "name": "Handy", "start_node_id": None, "return_after_s": 0},
+        {"slug": "visu-pc", "name": "Visu-PC Flur", "start_node_id": page_id, "return_after_s": 120, "header": None},
+        {"slug": "handy", "name": "Handy", "start_node_id": None, "return_after_s": 0, "header": None},
     ]
     assert resp.json() == expected
     assert (await client.get(URL)).json() == expected
@@ -124,7 +124,7 @@ async def test_config_import_rejects_invalid_profiles_but_keeps_valid_ones(clien
     assert any("visu.devices" in e for e in resp.json()["errors"])
     assert (await client.get(URL)).json() == []
 
-    good = [{"slug": "imported", "name": "Imported", "start_node_id": None, "return_after_s": 30}]
+    good = [{"slug": "imported", "name": "Imported", "start_node_id": None, "return_after_s": 30, "header": None}]
     document["app_settings"] = [{"key": "visu.devices", "value": json.dumps(good)}]
     resp = await client.post("/api/v1/config/import", json=document, headers=auth_headers)
     assert resp.status_code == 200, resp.text

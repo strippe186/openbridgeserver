@@ -30,7 +30,9 @@ const mocks = vi.hoisted(() => {
     loadPage: vi.fn().mockResolvedValue(undefined),
     hasSessionToken: () => false,
   })
-  return { node, store, loadBreadcrumb, push: vi.fn(), getJwt: vi.fn() }
+  const device = reactive({ header: { visible: true, values: [] as Array<{ datapoint_id: string }> } })
+  const dp = { subscribe: vi.fn(), unsubscribe: vi.fn(), fetchInitialValues: vi.fn().mockResolvedValue(undefined), getValue: () => null, values: {} }
+  return { node, store, loadBreadcrumb, push: vi.fn(), getJwt: vi.fn(), device, dp }
 })
 
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key: string) => key }) }))
@@ -44,14 +46,10 @@ vi.mock('@/stores/visu', () => ({
 }))
 
 vi.mock('@/stores/datapoints', () => ({
-  useDatapointsStore: () => ({
-    subscribe: vi.fn(),
-    fetchInitialValues: vi.fn().mockResolvedValue(undefined),
-    values: {},
-  }),
+  useDatapointsStore: () => mocks.dp,
 }))
 
-vi.mock('@/stores/theme', () => ({ useThemeStore: () => ({ isDark: false, toggle: vi.fn() }) }))
+vi.mock('@/stores/device', () => ({ useDeviceStore: () => mocks.device }))
 
 vi.mock('@/composables/useWebSocket', () => ({
   useWebSocket: () => ({ connect: vi.fn(), disconnect: vi.fn(), connected: { value: true } }),
@@ -68,7 +66,7 @@ vi.mock('@/api/client', () => ({
 function mountViewer() {
   return mount(VisuViewer, {
     props: { id: 'page-1' },
-    global: { mocks: { $t: (key: string) => key }, stubs: { Breadcrumb: true, NodeOverview: true, AuthButton: true } },
+    global: { mocks: { $t: (key: string) => key }, stubs: { NodeOverview: true, VisuHeader: { template: '<header />' } } },
   })
 }
 
@@ -258,5 +256,48 @@ describe('VisuViewer embedded as alarm popup', () => {
     await flushPromises()
     expect(embedded.find('header').exists()).toBe(false)
     embedded.unmount()
+  })
+})
+
+describe('VisuViewer header bar values', () => {
+  afterEach(() => {
+    mocks.device.header = { visible: true, values: [] }
+    mocks.store.nodes = [mocks.node]
+    mocks.store.pageConfig = null
+  })
+
+  it('subscribes the header values together with the page values', async () => {
+    mocks.getJwt.mockReturnValue('jwt-1')
+    mocks.store.nodes = [{ ...mocks.node, type: 'PAGE' }]
+    mocks.device.header = { visible: true, values: [{ datapoint_id: 'dp-out' }] }
+    mocks.dp.subscribe.mockClear()
+    const wrapper = mountViewer()
+    await flushPromises()
+
+    expect(mocks.dp.subscribe).toHaveBeenCalledWith(['dp-out'])
+    wrapper.unmount()
+  })
+
+  it('fetches the header values with the page context on an overview node', async () => {
+    mocks.getJwt.mockReturnValue('jwt-1')
+    mocks.store.nodes = [{ ...mocks.node, type: 'LOCATION' }]
+    mocks.device.header = { visible: true, values: [{ datapoint_id: 'dp-out' }] }
+    mocks.dp.fetchInitialValues.mockClear()
+    const wrapper = mountViewer()
+    await flushPromises()
+
+    expect(mocks.dp.fetchInitialValues).toHaveBeenCalledWith(['dp-out'], { pageId: 'page-1' })
+    wrapper.unmount()
+  })
+
+  it('skips the values of a hidden header bar', async () => {
+    mocks.getJwt.mockReturnValue('jwt-1')
+    mocks.device.header = { visible: false, values: [{ datapoint_id: 'dp-out' }] }
+    mocks.dp.fetchInitialValues.mockClear()
+    const wrapper = mountViewer()
+    await flushPromises()
+
+    expect(mocks.dp.fetchInitialValues.mock.calls.flatMap(call => call[0])).not.toContain('dp-out')
+    wrapper.unmount()
   })
 })

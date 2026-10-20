@@ -55,3 +55,16 @@ describe('visuAlarmsApi client', () => {
     expect(api.put).toHaveBeenCalledWith('/system/visu-alarms', { alarms })
   })
 })
+
+describe('visuHeaderApi client', () => {
+  it('reads and replaces the default Visu header bar', async () => {
+    const { visuHeaderApi } = await import('@/api/client')
+    const header = { visible: true, values: [] }
+
+    await visuHeaderApi.get()
+    await visuHeaderApi.update(header)
+
+    expect(api.get).toHaveBeenCalledWith('/system/visu-header')
+    expect(api.put).toHaveBeenCalledWith('/system/visu-header', header)
+  })
+})

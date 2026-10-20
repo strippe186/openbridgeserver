@@ -1,5 +1,40 @@
 <template>
   <div class="flex flex-col gap-4" data-testid="visu-devices-panel">
+    <!-- Kopfleiste (Standard für alle Geräte ohne eigene) -->
+    <div class="card" data-testid="visu-header-card">
+      <div class="card-header flex items-center justify-between">
+        <div>
+          <h3 class="font-semibold text-sm text-slate-800 dark:text-slate-100">{{ $t('settings.visuHeader.title') }}</h3>
+          <p class="text-xs text-slate-500 mt-0.5">{{ $t('settings.visuHeader.desc') }}</p>
+        </div>
+        <HelpButton help-id="settings-visu-header" />
+      </div>
+      <div class="card-body flex flex-col gap-3">
+        <div v-if="loading" class="flex justify-center py-4"><Spinner /></div>
+        <template v-else-if="defaultHeader">
+          <VisuHeaderEditor
+            v-model="defaultHeader"
+            :page-options="pageOptions"
+            :dp-names="dpNames"
+            testid="visu-header-default"
+            @datapoint-selected="rememberDatapoint"
+          />
+          <p v-if="headerError(defaultHeader)" class="text-xs text-red-400" data-testid="visu-header-error">{{ $t(headerError(defaultHeader)) }}</p>
+          <div
+            v-if="headerMsg"
+            :class="['p-3 rounded-lg text-sm border', headerMsg.ok ? 'bg-green-500/10 text-green-400 border-green-500/30' : 'bg-red-500/10 text-red-400 border-red-500/30']"
+            data-testid="visu-header-msg"
+          >{{ headerMsg.text }}</div>
+          <div class="flex justify-end">
+            <button type="button" class="btn-primary" :disabled="headerSaving || !!headerError(defaultHeader)" data-testid="btn-save-visu-header" @click="saveHeader">
+              <Spinner v-if="headerSaving" size="sm" color="white" />
+              {{ $t('common.save') }}
+            </button>
+          </div>
+        </template>
+      </div>
+    </div>
+
     <div class="card">
       <div class="card-header flex items-center justify-between">
         <div>
@@ -76,6 +111,22 @@
             </div>
           </div>
 
+          <div class="flex flex-col gap-2">
+            <label class="flex items-center gap-2 text-sm cursor-pointer">
+              <input type="checkbox" :checked="!!device.header" data-testid="chk-visu-device-own-header" @change="toggleOwnHeader(device, $event.target.checked)" />
+              {{ $t('settings.visuHeader.ownHeader') }}
+            </label>
+            <div v-if="device.header" class="p-3 rounded-lg border border-slate-200 dark:border-slate-700/60 bg-white dark:bg-slate-900/40">
+              <VisuHeaderEditor
+                v-model="device.header"
+                :page-options="pageOptions"
+                :dp-names="dpNames"
+                testid="visu-header-device"
+                @datapoint-selected="rememberDatapoint"
+              />
+            </div>
+          </div>
+
           <p v-if="rowError(device)" class="text-xs text-red-400" data-testid="visu-device-error">{{ $t(rowError(device)) }}</p>
 
           <div class="flex items-center gap-2">
@@ -120,9 +171,10 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { visuDevicesApi } from '@/api/client'
+import { dpApi, visuDevicesApi, visuHeaderApi } from '@/api/client'
 import HelpButton from '@/components/ui/HelpButton.vue'
 import Spinner from '@/components/ui/Spinner.vue'
+import VisuHeaderEditor from '@/components/settings/VisuHeaderEditor.vue'
 
 // Mirrors obs/visu_devices.py.
 const MAX_RETURN_AFTER_S = 86400
@@ -136,6 +188,10 @@ const loading = ref(true)
 const saving = ref(false)
 const msg = ref(null)
 const copiedKey = ref(null)
+const defaultHeader = ref(null)
+const headerSaving = ref(false)
+const headerMsg = ref(null)
+const dpNames = ref({})
 let nextKey = 0
 
 function toRow(device, autoSlug = false) {
@@ -144,6 +200,7 @@ function toRow(device, autoSlug = false) {
     name: device.name,
     start_node_id: device.start_node_id ?? '',
     return_after_s: device.return_after_s,
+    header: device.header ?? null,
     _key: nextKey++,
     _autoSlug: autoSlug,
   }
@@ -189,7 +246,51 @@ function slugValid(device) {
   return SLUG_RE.test(device.slug)
 }
 
+function headerError(header) {
+  if (header.values.some(item => !item.datapoint_id)) return 'settings.visuHeader.errorDatapoint'
+  if (header.menu_page_id && !pageIds.value.has(header.menu_page_id)) return 'settings.visuHeader.errorMissingPage'
+  return ''
+}
+
+function toggleOwnHeader(device, own) {
+  device.header = own ? JSON.parse(JSON.stringify(defaultHeader.value)) : null
+}
+
+function rememberDatapoint(dp) {
+  dpNames.value = { ...dpNames.value, [dp.id]: dp.name }
+}
+
+async function loadDatapointNames(headers) {
+  const ids = [...new Set(headers.flatMap(header => header.values.map(item => item.datapoint_id)))]
+  const names = {}
+  await Promise.all(ids.map(async (id) => {
+    try {
+      const { data } = await dpApi.get(id)
+      names[id] = data.name
+    } catch {
+      names[id] = id
+    }
+  }))
+  dpNames.value = { ...dpNames.value, ...names }
+}
+
+async function saveHeader() {
+  headerSaving.value = true
+  headerMsg.value = null
+  try {
+    const { data } = await visuHeaderApi.update(defaultHeader.value)
+    defaultHeader.value = data
+    headerMsg.value = { ok: true, text: t('settings.visuHeader.saved') }
+  } catch (err) {
+    const detail = err?.response?.data?.detail
+    headerMsg.value = { ok: false, text: typeof detail === 'string' ? detail : t('settings.visuDevices.saveError') }
+  } finally {
+    headerSaving.value = false
+  }
+}
+
 function rowError(device) {
+  if (device.header && headerError(device.header)) return headerError(device.header)
   if (!device.name.trim()) return 'settings.visuDevices.errorName'
   if (!slugValid(device)) return 'settings.visuDevices.errorSlug'
   if (devices.value.filter(other => other.slug === device.slug).length > 1) return 'settings.visuDevices.errorDuplicate'
@@ -228,6 +329,7 @@ async function save() {
       name: device.name,
       start_node_id: device.start_node_id || null,
       return_after_s: device.return_after_s,
+      header: device.header,
     }))
     const { data } = await visuDevicesApi.update(payload)
     devices.value = data.map(device => toRow(device))
@@ -245,9 +347,11 @@ async function save() {
 
 onMounted(async () => {
   try {
-    const [deviceRes, pageRes] = await Promise.all([visuDevicesApi.list(), visuDevicesApi.pages()])
+    const [deviceRes, pageRes, headerRes] = await Promise.all([visuDevicesApi.list(), visuDevicesApi.pages(), visuHeaderApi.get()])
     devices.value = deviceRes.data.map(device => toRow(device))
     pages.value = pageRes.data
+    defaultHeader.value = headerRes.data
+    await loadDatapointNames([headerRes.data, ...deviceRes.data.map(device => device.header).filter(Boolean)])
   } catch {
     msg.value = { ok: false, text: t('settings.visuDevices.loadError') }
   } finally {

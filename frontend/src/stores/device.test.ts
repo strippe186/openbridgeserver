@@ -1,12 +1,16 @@
 // @vitest-environment jsdom
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { VisuDevice } from '@/api/client'
+import type { VisuDevice, VisuHeader } from '@/api/client'
 
 const list = vi.fn<() => Promise<VisuDevice[]>>()
-vi.mock('@/api/client', () => ({ visuDevices: { list: () => list() } }))
+const getHeader = vi.fn<() => Promise<VisuHeader>>()
+vi.mock('@/api/client', () => ({ visuDevices: { list: () => list() }, visuHeader: { get: () => getHeader() } }))
 
-const { useDeviceStore, DEVICE_STORAGE_KEY } = await import('./device')
+const { useDeviceStore, DEVICE_STORAGE_KEY, FALLBACK_HEADER } = await import('./device')
+
+const DEFAULT_HEADER: VisuHeader = { ...FALLBACK_HEADER, show_clock: true }
+const OWN_HEADER: VisuHeader = { ...FALLBACK_HEADER, show_login: false, sticky: true }
 
 const DEVICES: VisuDevice[] = [
   { slug: 'panel', name: 'Wandpanel', start_node_id: 'page-1', return_after_s: 90 },
@@ -17,6 +21,8 @@ beforeEach(() => {
   localStorage.clear()
   list.mockReset()
   list.mockResolvedValue(DEVICES)
+  getHeader.mockReset()
+  getHeader.mockResolvedValue(DEFAULT_HEADER)
   setActivePinia(createPinia())
 })
 
@@ -124,5 +130,37 @@ describe('useDeviceStore', () => {
     store.applyQuery({ tab: 'x' })
 
     expect(store.slug).toBe('panel')
+  })
+
+  it('shows the previous header bar until the server answers', () => {
+    const store = useDeviceStore()
+
+    expect(store.header).toEqual(FALLBACK_HEADER)
+  })
+
+  it('uses the default header bar for devices without their own', async () => {
+    const store = useDeviceStore()
+    store.select('panel')
+    await store.load()
+
+    expect(store.header).toEqual(DEFAULT_HEADER)
+  })
+
+  it('prefers the header bar of the device profile', async () => {
+    list.mockResolvedValue([{ ...DEVICES[0], header: OWN_HEADER }])
+    const store = useDeviceStore()
+    store.select('panel')
+    await store.load()
+
+    expect(store.header).toEqual(OWN_HEADER)
+  })
+
+  it('keeps the previous header bar when the default cannot be loaded', async () => {
+    getHeader.mockRejectedValue(new Error('offline'))
+    const store = useDeviceStore()
+    await store.load()
+
+    expect(store.header).toEqual(FALLBACK_HEADER)
+    expect(store.devices).toEqual(DEVICES)
   })
 })

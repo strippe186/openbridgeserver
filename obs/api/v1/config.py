@@ -48,6 +48,7 @@ from obs.models.datapoint import DataPoint
 from obs.regional_format import REGIONAL_SETTING_KEYS, validate_regional_setting
 from obs.visu_alarms import VISU_ALARMS_KEY, parse_visu_alarms, reload_visu_alarms
 from obs.visu_devices import VISU_DEVICES_KEY, parse_visu_devices
+from obs.visu_header import VISU_HEADER_KEY, parse_visu_header
 
 logger = logging.getLogger(__name__)
 
@@ -1259,6 +1260,8 @@ async def import_config(
                 parse_visu_devices(s.value)
             elif s.key == VISU_ALARMS_KEY:
                 parse_visu_alarms(s.value)
+            elif s.key == VISU_HEADER_KEY:
+                parse_visu_header(s.value)
             await db.execute_and_commit(
                 "INSERT OR REPLACE INTO app_settings (key, value) VALUES (?,?)",
                 (s.key, s.value),

@@ -42,6 +42,7 @@ from obs.core.registry import _row_to_datapoint, get_registry
 from obs.db.database import Database, get_db
 from obs.models.datapoint import DataPointCreate, DataPointUpdate
 from obs.models.visu import PageConfig
+from obs.visu_header import header_datapoint_ids
 
 router = APIRouter(tags=["datapoints"])
 logger = logging.getLogger(__name__)
@@ -765,7 +766,8 @@ async def get_value(
         page_id = request.headers.get("X-Page-Id")
         if not page_id:
             raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
-        if not await _page_has_datapoint(db, page_id, dp_id):
+        # Header values (e.g. the outside temperature) are readable on any page the visitor may view.
+        if not await _page_has_datapoint(db, page_id, dp_id) and str(dp_id) not in await header_datapoint_ids(db):
             raise HTTPException(status.HTTP_403_FORBIDDEN, detail="Datapoint is not part of the page")
 
         from obs.api.v1.visu import _resolve_access_with_node
@@ -783,7 +785,7 @@ async def get_value(
         if not await _can_read_datapoint(db, principal, dp_id):
             if await _has_explicit_datapoint_read_deny(db, principal, dp_id):
                 raise HTTPException(status.HTTP_404_NOT_FOUND, f"DataPoint {dp_id} not found")
-            if not await _page_context_allows_datapoint_read(db, request, dp_id, principal):
+            if not await _page_context_allows_datapoint_read(db, request, dp_id, principal) and str(dp_id) not in await header_datapoint_ids(db):
                 raise HTTPException(status.HTTP_404_NOT_FOUND, f"DataPoint {dp_id} not found")
 
     state = reg.get_value(dp_id)

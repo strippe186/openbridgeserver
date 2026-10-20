@@ -23,6 +23,8 @@ import re
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from obs.visu_header import VisuHeader
+
 logger = logging.getLogger(__name__)
 
 VISU_DEVICES_KEY = "visu.devices"
@@ -39,6 +41,8 @@ class VisuDevice(BaseModel):
     start_node_id: str | None = None
     # 0 = never return automatically.
     return_after_s: int = Field(default=0, ge=0, le=MAX_RETURN_AFTER_S)
+    # Own header bar for this device; None = the default header (visu.header).
+    header: VisuHeader | None = None
 
     @field_validator("slug")
     @classmethod
